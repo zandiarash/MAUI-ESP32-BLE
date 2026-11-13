@@ -1,0 +1,147 @@
+@page "/add"
+@layout WizardLayout
+@using IotStarter.App.Core.Platform
+@using IotStarter.App.Core.Provisioning
+@implements IAsyncDisposable
+@inject IServiceProvider Services
+@inject IAppSettings AppSettings
+@inject NavigationManager Nav
+@inject IStringLocalizer<Strings> L
+
+@{ object? state = _wizard.State.Value; int step = StepIndex(state); }
+
+<TopBar Title="@L["Wizard.Title"]">
+    <Leading>
+        <button class="icon-button" type="button" aria-label="@L["Common.Close"]" @onclick="RequestCloseAsync">
+            <AppIcon Name="close" />
+        </button>
+    </Leading>
+</TopBar>
+
+<div class="wizard__progress" role="progressbar" aria-valuemin="1" aria-valuemax="4" aria-valuenow="@(step + 1)">
+    @for (int i = 0; i < 4; i++)
+    {
+        <span class="@(i <= step ? "done" : null)"></span>
+    }
+</div>
+<div class="wizard__step-label">@L["Wizard.StepOf", step + 1, 4, L[$"Wizard.Step{step}"]]</div>
+
+@switch (state)
+{
+    case WizardChecking:
+        <div class="centered">
+            <Spin Size="SpinSize.Large" />
+            <p>@L["Wizard.Checking"]</p>
+        </div>
+        break;
+    case WizardBlocked blocked:
+        <BlockedStep Reason="blocked.Reason" OnRetry="() => _wizard.StartAsync()" />
+        break;
+    case WizardScanning scanning:
+        <FindStep State="scanning" DemoMode="AppSettings.DemoMode" OnSelect="id => _wizard.SelectDeviceAsync(id)" />
+        break;
+    case WizardConnecting connecting:
+        <ConnectingStep State="connecting" />
+        break;
+    case WizardChoosingNetwork choosing:
+        <NetworkStep State="choosing" Wizard="_wizard" DemoMode="AppSettings.DemoMode" />
+        break;
+    case WizardProvisioning provisioning:
+        <ProgressStep Ssid="@provisioning.Ssid" DeviceState="provisioning.DeviceState" Rejoining="false"
+                      CancelRequested="provisioning.CancelRequested" OnCancel="() => _wizard.CancelProvisioningAsync()" />
+        break;
+    case WizardRejoining:
+        <ProgressStep Ssid="@_lastSsid" Rejoining="true" />
+        break;
+    case WizardNaming naming:
+        <NamingStep State="naming" OnFinish="name => _wizard.FinishAsync(name)" />
+        break;
+    case WizardDone:
+        <div class="centered"><Spin Size="SpinSize.Large" /></div>
+        break;
+    case WizardFailed failed:
+        <FailureStep Failure="failed.Failure" Ssid="@_lastSsid" OnRetry="() => _wizard.RetryAsync()" OnStartOver="() => _wizard.BackToScanAsync()" OnClose="Close" />
+        break;
+}
+
+<Drawer Visible="_confirmClose" OnClose="() => _confirmClose = false" Placement="DrawerPlacement.Bottom" Height="auto" Title="@L["Wizard.CloseConfirm.Title"].Value">
+    <div class="stack">
+        <p class="muted" style="margin:0">@L["Wizard.CloseConfirm.Body"]</p>
+        <Button Type="ButtonType.Primary" Danger="true" Size="ButtonSize.Large" Block="true" OnClick="Close">@L["Wizard.CloseConfirm.Confirm"]</Button>
+        <Button Size="ButtonSize.Large" Block="true" OnClick="() => _confirmClose = false">@L["Wizard.CloseConfirm.Stay"]</Button>
+    </div>
+</Drawer>
+
+@code {
+    private AddDeviceWizard _wizard = null!;
+    private bool _confirmClose;
+    private string? _lastSsid;
+
+    protected override void OnInitialized()
+    {
+        _wizard = Services.GetRequiredService<AddDeviceWizard>();
+        _wizard.StateChanged += OnWizardStateChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await _wizard.StartAsync();
+        }
+    }
+
+    private void OnWizardStateChanged(WizardState state)
+    {
+        if (state.Value is WizardProvisioning provisioning)
+        {
+            _lastSsid = provisioning.Ssid;
+        }
+
+        if (state.Value is WizardDone done)
+        {
+            _ = InvokeAsync(() => Nav.NavigateTo($"/device/{Uri.EscapeDataString(done.DeviceId)}", replace: true));
+            return;
+        }
+
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private int StepIndex(object? state)
+    {
+        return state switch
+        {
+            WizardChoosingNetwork => 1,
+            WizardProvisioning or WizardRejoining => 2,
+            WizardNaming or WizardDone => 3,
+            WizardFailed failed => failed.Failure.Retry switch
+            {
+                RetryTarget.Scan => 0,
+                RetryTarget.Credentials => 1,
+                _ => 2
+            },
+            _ => 0
+        };
+    }
+
+    private Task RequestCloseAsync()
+    {
+        // Leaving while the device is joining would abandon a half-finished setup: ask first.
+        if (_wizard.State.Value is WizardProvisioning or WizardRejoining)
+        {
+            _confirmClose = true;
+            return Task.CompletedTask;
+        }
+
+        Close();
+        return Task.CompletedTask;
+    }
+
+    private void Close() => Nav.NavigateTo("/");
+
+    public async ValueTask DisposeAsync()
+    {
+        _wizard.StateChanged -= OnWizardStateChanged;
+        await _wizard.DisposeAsync();
+    }
+}

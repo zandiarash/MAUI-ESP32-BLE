@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Devices serve plain HTTP on the local network at DHCP-assigned addresses. Android's domain-config
+  cannot express IP ranges, so cleartext is permitted app-wide. The app only ever sends HTTP to
+  devices it found on the local network, and every request after /info carries the per-device token.
+  See README "Security" for the HTTPS / signed-request options.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

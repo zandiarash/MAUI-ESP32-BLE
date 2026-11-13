@@ -1,0 +1,74 @@
+@using IotStarter.App.Core.State
+@inject IStringLocalizer<Strings> L
+
+<article class="surface device-card">
+    <button class="device-card__head" type="button" @onclick="() => OnOpen.InvokeAsync(Device.Id)"
+            aria-label="@L["Devices.Open", Device.Record.Name]">
+        <ModelTile ModelId="Device.Record.ModelId" />
+        <span class="row__main">
+            <span class="device-card__name"><bdi>@Device.Record.Name</bdi></span>
+            <span class="row__sub">
+                <span class="@UiText.DotClass(Device.Connectivity)"></span>
+                <span>@L.Connectivity(Device.Connectivity)</span>
+                @if (L.ModelName(Device.Record.ModelId) != Device.Record.Name)
+                {
+                    <span aria-hidden="true">·</span>
+                    <span>@L.ModelName(Device.Record.ModelId)</span>
+                }
+            </span>
+        </span>
+        <span class="row__end"><AppIcon Name="chevron" Size="20" /></span>
+    </button>
+
+    @switch (Device.Connectivity)
+    {
+        case DeviceConnectivity.Online:
+        case DeviceConnectivity.Checking when Device.Outputs.Count > 0:
+        case DeviceConnectivity.Unknown when Device.Outputs.Count > 0:
+            <div class="device-card__toggles">
+                @foreach (OutputView output in Device.Outputs)
+                {
+                    <div class="toggle-chip" @onclick="() => Toggle(output)">
+                        <span class="toggle-chip__label"><bdi>@output.Label</bdi></span>
+                        <Switch Checked="output.On"
+                                Loading="output.Pending"
+                                Disabled="!CanSwitch"
+                                Control="true"
+                                aria-label="@output.Label" />
+                    </div>
+                }
+            </div>
+            break;
+        case DeviceConnectivity.Offline:
+            <div class="device-card__note">
+                <span>@L["Devices.OfflineNote"]</span>
+                <button class="link-button" type="button" @onclick="() => OnWhyOffline.InvokeAsync()">@L["Devices.WhyOffline"]</button>
+            </div>
+            break;
+        case DeviceConnectivity.Unauthorized:
+            <div class="device-card__note">@L["Devices.UnauthorizedNote"]</div>
+            break;
+        default:
+            <div class="device-card__note">@L["Devices.CheckingNote"]</div>
+            break;
+    }
+</article>
+
+@code {
+    [Parameter, EditorRequired]
+    public DeviceView Device { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback<string> OnOpen { get; set; }
+
+    [Parameter]
+    public EventCallback<(string DeviceId, int OutputId, bool On)> OnToggle { get; set; }
+
+    [Parameter]
+    public EventCallback OnWhyOffline { get; set; }
+
+    private bool CanSwitch => Device.Connectivity == DeviceConnectivity.Online;
+
+    private Task Toggle(OutputView output) =>
+        CanSwitch && !output.Pending ? OnToggle.InvokeAsync((Device.Id, output.Id, !output.On)) : Task.CompletedTask;
+}

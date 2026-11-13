@@ -1,0 +1,11 @@
+﻿<ContentPage xmlns:local="clr-namespace:IotStarter.App"
+             xmlns:components="clr-namespace:IotStarter.App.Components"
+             x:Class="IotStarter.App.MainPage">
+
+    <BlazorWebView x:Name="blazorWebView" HostPage="wwwroot/index.html">
+        <BlazorWebView.RootComponents>
+            <RootComponent Selector="#app" ComponentType="{x:Type components:Routes}" />
+        </BlazorWebView.RootComponents>
+    </BlazorWebView>
+
+</ContentPage>

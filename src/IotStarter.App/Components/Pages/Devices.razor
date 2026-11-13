@@ -1,0 +1,96 @@
+@page "/"
+@using IotStarter.App.Core.Platform
+@using IotStarter.App.Core.State
+@implements IDisposable
+@inject AppState State
+@inject DeviceManager Manager
+@inject IAppSettings Settings
+@inject IHaptics Haptics
+@inject NavigationManager Nav
+@inject IStringLocalizer<Strings> L
+
+<TopBar Title="@L["Devices.Title"]">
+    <Actions>
+        <button class="icon-button" type="button" aria-label="@L["Common.Refresh"]"
+                disabled="@State.IsRefreshing" @onclick="RefreshAsync">
+            <AppIcon Name="refresh" Class="@(State.IsRefreshing ? "spin" : null)" />
+        </button>
+    </Actions>
+</TopBar>
+
+<PullToRefresh Refreshing="State.IsRefreshing" OnRefresh="RefreshAsync">
+    <div class="page-content">
+        <NetworkBanner State="State.Network" DemoMode="Settings.DemoMode" />
+
+        @if (Settings.DemoMode)
+        {
+            <Alert Type="AlertType.Info" ShowIcon="true" Message="@L["Devices.DemoBanner"].Value" />
+        }
+
+        @if (!State.IsLoaded)
+        {
+            @for (int i = 0; i < 2; i++)
+            {
+                <div class="surface skeleton-card" aria-hidden="true">
+                    <div style="display:flex;gap:12px;align-items:center">
+                        <div class="skeleton-block" style="inline-size:44px;block-size:44px;border-radius:12px"></div>
+                        <div style="flex:1" class="stack">
+                            <div class="skeleton-block" style="block-size:18px;inline-size:55%"></div>
+                            <div class="skeleton-block" style="block-size:14px;inline-size:35%"></div>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px">
+                        <div class="skeleton-block" style="block-size:44px"></div>
+                        <div class="skeleton-block" style="block-size:44px"></div>
+                    </div>
+                </div>
+            }
+        }
+        else if (State.Devices.Count == 0)
+        {
+            <div class="centered">
+                <div class="centered__art"><AppIcon Name="switch" Size="44" /></div>
+                <h2>@L["Devices.Empty.Title"]</h2>
+                <p>@L["Devices.Empty.Body"]</p>
+                <div class="actions">
+                    <Button Type="ButtonType.Primary" Size="ButtonSize.Large" Block="true" OnClick="@(() => Nav.NavigateTo("/add"))">
+                        @L["Devices.Empty.Action"]
+                    </Button>
+                </div>
+            </div>
+        }
+        else
+        {
+            @foreach (DeviceView device in State.Devices)
+            {
+                <DeviceCard @key="device.Id"
+                            Device="device"
+                            OnOpen="OpenDevice"
+                            OnToggle="ToggleAsync"
+                            OnWhyOffline="() => _offlineHelp = true" />
+            }
+        }
+    </div>
+</PullToRefresh>
+
+<OfflineHelp @bind-Visible="_offlineHelp" />
+
+@code {
+    private bool _offlineHelp;
+
+    protected override void OnInitialized() => State.Changed += OnStateChanged;
+
+    private void OnStateChanged() => _ = InvokeAsync(StateHasChanged);
+
+    private Task RefreshAsync() => Manager.RefreshAsync(CancellationToken.None);
+
+    private void OpenDevice(string deviceId) => Nav.NavigateTo($"/device/{Uri.EscapeDataString(deviceId)}");
+
+    private async Task ToggleAsync((string DeviceId, int OutputId, bool On) change)
+    {
+        Haptics.Click();
+        await Manager.SetOutputAsync(change.DeviceId, change.OutputId, change.On, CancellationToken.None);
+    }
+
+    public void Dispose() => State.Changed -= OnStateChanged;
+}

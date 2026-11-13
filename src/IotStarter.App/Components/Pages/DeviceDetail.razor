@@ -1,0 +1,307 @@
+@page "/device/{Id}"
+@using IotStarter.App.Core.Network
+@using IotStarter.App.Core.Platform
+@using IotStarter.App.Core.State
+@implements IDisposable
+@inject AppState State
+@inject DeviceManager Manager
+@inject IHaptics Haptics
+@inject IMessageService Message
+@inject NavigationManager Nav
+@inject IStringLocalizer<Strings> L
+
+@{ DeviceView? d = Device; }
+@if (d is null)
+{
+    <TopBar Title="@L["Device.NotFound.Title"]" ShowBack="true" />
+    <div class="centered">
+        <div class="centered__art centered__art--warning"><AppIcon Name="unknown" Size="44" /></div>
+        <h2>@L["Device.NotFound.Title"]</h2>
+        <p>@L["Device.NotFound.Body"]</p>
+        <div class="actions">
+            <Button Type="ButtonType.Primary" Size="ButtonSize.Large" Block="true" OnClick="@(() => Nav.NavigateTo("/"))">@L["Device.NotFound.Action"]</Button>
+        </div>
+    </div>
+    return;
+}
+
+<TopBar Title="@d.Record.Name" ShowBack="true">
+    <Subtitle>
+        <span class="@UiText.DotClass(d.Connectivity)"></span>
+        <span>@L.Connectivity(d.Connectivity)</span>
+        @if (d.Record.LastIPv4 is { } ip && d.Connectivity == DeviceConnectivity.Online)
+        {
+            <span aria-hidden="true">·</span>
+            <span dir="ltr">@ip</span>
+        }
+    </Subtitle>
+    <Actions>
+        <button class="icon-button" type="button" aria-label="@L["Device.Rename"]" @onclick="OpenRename">
+            <AppIcon Name="edit" />
+        </button>
+    </Actions>
+</TopBar>
+
+<PullToRefresh Refreshing="State.IsRefreshing" OnRefresh="RefreshAsync">
+    <div class="page-content">
+        @switch (d.Connectivity)
+        {
+            case DeviceConnectivity.Offline:
+                <Alert Type="AlertType.Warning" ShowIcon="true" Message="@L["Device.Offline.Title"].Value">
+                    <ChildContent>
+                        <div class="stack" style="gap:4px">
+                            <span>@L["Device.Offline.Body"]</span>
+                            <span>
+                                <button class="link-button" type="button" @onclick="RefreshAsync">@L["Common.TryAgain"]</button>
+                                <button class="link-button" type="button" style="margin-inline-start:16px" @onclick="() => _offlineHelp = true">@L["Devices.WhyOffline"]</button>
+                            </span>
+                        </div>
+                    </ChildContent>
+                </Alert>
+                break;
+            case DeviceConnectivity.Unauthorized:
+                <Alert Type="AlertType.Error" ShowIcon="true" Message="@L["Device.Unauthorized.Title"].Value" Description="@L["Device.Unauthorized.Body"].Value" />
+                break;
+        }
+
+        <h2 class="section-title">@L["Device.Outputs"]</h2>
+        <div class="surface">
+            @if (d.Outputs.Count == 0 && d.Connectivity is DeviceConnectivity.Unknown or DeviceConnectivity.Checking)
+            {
+                @for (int i = 0; i < 3; i++)
+                {
+                    <div class="skeleton-row" aria-hidden="true">
+                        <div class="skeleton-block" style="block-size:16px;inline-size:40%"></div>
+                        <div class="skeleton-block" style="block-size:28px;inline-size:48px;margin-inline-start:auto;border-radius:999px"></div>
+                    </div>
+                }
+            }
+            else if (d.Outputs.Count == 0)
+            {
+                <div class="row"><span class="muted small">@L["Device.NoOutputs"]</span></div>
+            }
+            else
+            {
+                @foreach (OutputView output in d.Outputs)
+                {
+                    <div class="row row--tappable" @key="output.Id" @onclick="() => ToggleAsync(output)">
+                        <span class="row__main"><span class="row__title"><bdi>@output.Label</bdi></span></span>
+                        <Switch Checked="output.On"
+                                Loading="output.Pending"
+                                Disabled="!CanSwitch"
+                                Control="true"
+                                aria-label="@output.Label" />
+                    </div>
+                }
+            }
+        </div>
+
+        <h2 class="section-title">@L["Device.About"]</h2>
+        <div class="surface">
+            <dl class="facts">
+                <dt>@L["Device.Model"]</dt>
+                <dd>
+                    <bdi>@L.ModelName(d.Record.ModelId)</bdi>
+                    @if (d.Model is null)
+                    {
+                        <Tag Color="@TagColor.Orange" Style="margin-inline-start:8px">@L["Common.UnknownModel"]</Tag>
+                    }
+                </dd>
+                <dt>@L["Device.Firmware"]</dt>
+                <dd>@(d.Firmware ?? "—")</dd>
+                <dt>@L["Device.Address"]</dt>
+                <dd><span dir="ltr">@(d.Record.LastEndpoint?.ToString() ?? "—")</span> @FoundVia</dd>
+                <dt>@L["Device.Id"]</dt>
+                <dd><span dir="ltr">@d.Id</span></dd>
+                @if (d.Record.LastSeen is { } seen)
+                {
+                    <dt>@L["Device.LastSeen"]</dt>
+                    <dd><bdi>@seen.ToLocalTime().ToString("g")</bdi></dd>
+                }
+            </dl>
+        </div>
+
+        <h2 class="section-title">@L["Device.Actions"]</h2>
+        <div class="actions">
+            <Button Size="ButtonSize.Large" Block="true" Disabled="!CanSwitch" Loading="_busy == Busy.Identify" OnClick="IdentifyAsync">
+                <AppIcon Name="identify" Size="20" /> <span>@L["Device.Identify"]</span>
+            </Button>
+            <Button Size="ButtonSize.Large" Block="true" Disabled="!CanSwitch" Loading="_busy == Busy.Restart" OnClick="RestartAsync">
+                <AppIcon Name="power" Size="20" /> <span>@L["Device.Restart"]</span>
+            </Button>
+            <Button Size="ButtonSize.Large" Block="true" OnClick="() => _confirm = Confirm.Forget">
+                <AppIcon Name="trash" Size="20" /> <span>@L["Device.Forget"]</span>
+            </Button>
+            <Button Size="ButtonSize.Large" Block="true" Danger="true" Disabled="!CanSwitch" OnClick="() => _confirm = Confirm.Reset">
+                <AppIcon Name="reset" Size="20" /> <span>@L["Device.FactoryReset"]</span>
+            </Button>
+        </div>
+    </div>
+</PullToRefresh>
+
+<Drawer Visible="_renameOpen" OnClose="() => _renameOpen = false" Placement="DrawerPlacement.Bottom" Height="auto" Title="@L["Device.Rename"].Value">
+    <div class="stack">
+        <div class="field">
+            <label for="rename-input">@L["Device.Rename.Label"]</label>
+            <Input TValue="string" id="rename-input" @bind-Value="_newName" Size="InputSize.Large" MaxLength="32" BindOnInput="true" OnPressEnter="RenameAsync" />
+            @if (_renameError is not null)
+            {
+                <span class="field__error">@_renameError</span>
+            }
+        </div>
+        <Button Type="ButtonType.Primary" Size="ButtonSize.Large" Block="true" Loading="_busy == Busy.Rename"
+                Disabled="string.IsNullOrWhiteSpace(_newName)" OnClick="RenameAsync">@L["Common.Save"]</Button>
+    </div>
+</Drawer>
+
+<Drawer Visible="_confirm != Confirm.None" OnClose="() => _confirm = Confirm.None" Placement="DrawerPlacement.Bottom" Height="auto"
+        Title="@(_confirm == Confirm.Reset ? L["Device.Reset.Title"].Value : L["Device.Forget.Title"].Value)">
+    <div class="stack">
+        <p class="muted" style="margin:0">
+            @(_confirm == Confirm.Reset ? L["Device.Reset.Body", d.Record.Name] : L["Device.Forget.Body", d.Record.Name])
+        </p>
+        <Button Type="ButtonType.Primary" Danger="true" Size="ButtonSize.Large" Block="true" Loading="_busy == Busy.Destructive" OnClick="ConfirmAsync">
+            @(_confirm == Confirm.Reset ? L["Device.Reset.Confirm"] : L["Device.Forget.Confirm"])
+        </Button>
+        <Button Size="ButtonSize.Large" Block="true" OnClick="() => _confirm = Confirm.None">@L["Common.Cancel"]</Button>
+    </div>
+</Drawer>
+
+<OfflineHelp @bind-Visible="_offlineHelp" />
+
+@code {
+    private enum Busy { None, Identify, Restart, Rename, Destructive }
+
+    private enum Confirm { None, Forget, Reset }
+
+    private Busy _busy;
+    private Confirm _confirm;
+    private bool _renameOpen;
+    private bool _offlineHelp;
+    private string _newName = string.Empty;
+    private string? _renameError;
+
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
+
+    private DeviceView? Device => State.Find(Id);
+
+    private bool CanSwitch => Device?.Connectivity == DeviceConnectivity.Online;
+
+    private string FoundVia => Device?.FoundVia switch
+    {
+        DiscoverySource.Mdns => L["Device.FoundVia.Mdns"],
+        DiscoverySource.UdpProbe => L["Device.FoundVia.Udp"],
+        _ => string.Empty
+    };
+
+    protected override void OnInitialized() => State.Changed += OnStateChanged;
+
+    private void OnStateChanged() => _ = InvokeAsync(StateHasChanged);
+
+    private Task RefreshAsync() => Manager.RefreshAsync(CancellationToken.None);
+
+    private async Task ToggleAsync(OutputView output)
+    {
+        if (!CanSwitch || output.Pending)
+        {
+            return;
+        }
+
+        Haptics.Click();
+        await Manager.SetOutputAsync(Id, output.Id, !output.On, CancellationToken.None);
+    }
+
+    private async Task IdentifyAsync()
+    {
+        _busy = Busy.Identify;
+        DeviceActionResult result = await Manager.IdentifyAsync(Id, CancellationToken.None);
+        _busy = Busy.None;
+        await ReportAsync(result, L["Device.Identify.Done"]);
+    }
+
+    private async Task RestartAsync()
+    {
+        _busy = Busy.Restart;
+        DeviceActionResult result = await Manager.RebootAsync(Id, CancellationToken.None);
+        _busy = Busy.None;
+        await ReportAsync(result, L["Device.Restart.Done"]);
+        if (result == DeviceActionResult.Ok)
+        {
+            // Look for it again once it is back (it may get a new address).
+            _ = Task.Delay(TimeSpan.FromSeconds(8)).ContinueWith(_ => Manager.RefreshAsync(CancellationToken.None), TaskScheduler.Default);
+        }
+    }
+
+    private void OpenRename()
+    {
+        _newName = Device?.Record.Name ?? string.Empty;
+        _renameError = null;
+        _renameOpen = true;
+    }
+
+    private async Task RenameAsync()
+    {
+        string name = _newName.Trim();
+        if (name.Length == 0 || System.Text.Encoding.UTF8.GetByteCount(name) > 32)
+        {
+            _renameError = L["Device.Rename.Invalid"];
+            return;
+        }
+
+        _busy = Busy.Rename;
+        DeviceActionResult result = await Manager.RenameAsync(Id, name, CancellationToken.None);
+        _busy = Busy.None;
+        if (result == DeviceActionResult.Ok)
+        {
+            _renameOpen = false;
+            await Message.SuccessAsync(L["Device.Rename.Done"].Value);
+        }
+        else
+        {
+            _renameError = L.Result(result);
+        }
+    }
+
+    private async Task ConfirmAsync()
+    {
+        Confirm action = _confirm;
+        _busy = Busy.Destructive;
+        if (action == Confirm.Forget)
+        {
+            await Manager.ForgetAsync(Id, CancellationToken.None);
+            _busy = Busy.None;
+            _confirm = Confirm.None;
+            await Message.SuccessAsync(L["Device.Forget.Done"].Value);
+            Nav.NavigateTo("/");
+            return;
+        }
+
+        DeviceActionResult result = await Manager.FactoryResetAsync(Id, CancellationToken.None);
+        _busy = Busy.None;
+        _confirm = Confirm.None;
+        if (result == DeviceActionResult.Ok)
+        {
+            await Message.SuccessAsync(L["Device.Reset.Done"].Value);
+            Nav.NavigateTo("/");
+        }
+        else
+        {
+            await Message.ErrorAsync(L.Result(result));
+        }
+    }
+
+    private async Task ReportAsync(DeviceActionResult result, string success)
+    {
+        if (result == DeviceActionResult.Ok)
+        {
+            await Message.SuccessAsync(success);
+        }
+        else
+        {
+            await Message.ErrorAsync(L.Result(result));
+        }
+    }
+
+    public void Dispose() => State.Changed -= OnStateChanged;
+}

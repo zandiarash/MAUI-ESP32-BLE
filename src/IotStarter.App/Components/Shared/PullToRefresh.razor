@@ -1,0 +1,64 @@
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+@inject IStringLocalizer<Strings> L
+
+@* Scroll container with touch pull-to-refresh (Ant Design has none). Desktop users use the refresh button. *@
+<div class="@($"page-scroll ptr {(Refreshing ? "ptr--refreshing" : null)}")" @ref="_element" aria-busy="@(Refreshing ? "true" : "false")">
+    <div class="ptr__indicator" aria-hidden="true">
+        <span class="ptr__bubble"><AppIcon Name="refresh" Size="20" /></span>
+    </div>
+    <div class="ptr__content">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    private ElementReference _element;
+    private DotNetObjectReference<PullToRefresh>? _self;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public bool Refreshing { get; set; }
+
+    [Parameter]
+    public EventCallback OnRefresh { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _self = DotNetObjectReference.Create(this);
+            try
+            {
+                await JS.InvokeVoidAsync("iotStarter.attachPullToRefresh", _element, _self);
+            }
+            catch (JSException)
+            {
+                // Without the gesture, the refresh button still works.
+            }
+            catch (JSDisconnectedException)
+            {
+                // The WebView is closing.
+            }
+        }
+    }
+
+    [JSInvokable]
+    public Task OnPulled() => Refreshing ? Task.CompletedTask : OnRefresh.InvokeAsync();
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("iotStarter.detachPullToRefresh", _element);
+        }
+        catch (JSDisconnectedException)
+        {
+            // The WebView is gone (app closing).
+        }
+
+        _self?.Dispose();
+    }
+}

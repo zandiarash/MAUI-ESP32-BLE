@@ -1,0 +1,129 @@
+/* IoT Starter design tokens (docs/ui-design-brief.md §1). The only place colours, type,
+   spacing, radii and motion are defined. Brand swap point: --iot-primary / --iot-primary-soft. */
+
+:root,
+[data-theme="light"] {
+    --iot-primary: #0F766E;
+    --iot-primary-hover: #115E59;
+    --iot-primary-active: #134E4A;
+    --iot-primary-soft: #CCFBF1;
+    --iot-on-primary: #FFFFFF;
+
+    --iot-bg: #F6F7F9;
+    --iot-surface: #FFFFFF;
+    --iot-surface-raised: #FFFFFF;
+    --iot-border: #E4E7EC;
+    --iot-text: #101828;
+    --iot-text-2: #475467;
+    --iot-text-3: #667085;
+
+    --iot-online: #12B76A;
+    --iot-offline: #98A2B3;
+    --iot-warning: #B54708;
+    --iot-warning-soft: #FEF0C7;
+    --iot-danger: #D92D20;
+    --iot-danger-soft: #FEE4E2;
+
+    --iot-shadow-card: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .08);
+    --iot-shadow-raised: 0 -1px 0 var(--iot-border), 0 -4px 16px rgba(16, 24, 40, .06);
+    --iot-skeleton: #EEF0F3;
+}
+
+[data-theme="dark"] {
+    --iot-primary: #2DD4BF;
+    --iot-primary-hover: #5EEAD4;
+    --iot-primary-active: #14B8A6;
+    --iot-primary-soft: #134E4A;
+    --iot-on-primary: #042F2E;
+
+    --iot-bg: #0B0F14;
+    --iot-surface: #151B23;
+    --iot-surface-raised: #1C2430;
+    --iot-border: #2A3441;
+    --iot-text: #F2F4F7;
+    --iot-text-2: #98A2B3;
+    --iot-text-3: #7A8699;
+
+    --iot-online: #32D583;
+    --iot-offline: #667085;
+    --iot-warning: #FDB022;
+    --iot-warning-soft: #3D2A08;
+    --iot-danger: #F97066;
+    --iot-danger-soft: #3E1A17;
+
+    --iot-shadow-card: none;
+    --iot-shadow-raised: 0 -1px 0 var(--iot-border);
+    --iot-skeleton: #222B36;
+}
+
+:root {
+    /* Type */
+    --iot-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic", "Helvetica Neue", Arial, sans-serif;
+    --iot-fs-caption: 12px;
+    --iot-lh-caption: 16px;
+    --iot-fs-small: 14px;
+    --iot-lh-small: 20px;
+    --iot-fs-body: 16px;
+    --iot-lh-body: 24px;
+    --iot-fs-title: 18px;
+    --iot-lh-title: 26px;
+    --iot-fs-page: 22px;
+    --iot-lh-page: 28px;
+    --iot-fs-hero: 28px;
+    --iot-lh-hero: 36px;
+
+    /* Spacing (4-pt) */
+    --iot-s1: 4px;
+    --iot-s2: 8px;
+    --iot-s3: 12px;
+    --iot-s4: 16px;
+    --iot-s5: 20px;
+    --iot-s6: 24px;
+    --iot-s8: 32px;
+    --iot-s10: 40px;
+
+    /* Shape */
+    --iot-r-control: 8px;
+    --iot-r-card: 14px;
+    --iot-r-sheet: 20px;
+    --iot-r-pill: 999px;
+
+    /* Touch */
+    --iot-touch: 44px;
+    --iot-row: 56px;
+
+    /* Motion */
+    --iot-ease: cubic-bezier(.2, 0, 0, 1);
+    --iot-t-fast: 150ms;
+    --iot-t-mid: 200ms;
+    --iot-t-slow: 250ms;
+
+    /* Layout */
+    --iot-topbar: 56px;
+    --iot-bottomnav: 64px;
+    --iot-rail: 88px;
+    --iot-content-max: 720px;
+
+    /* Map onto Ant Design's variable stylesheet. */
+    --ant-primary-color: var(--iot-primary);
+    --ant-primary-color-hover: var(--iot-primary-hover);
+    --ant-primary-color-active: var(--iot-primary-active);
+    --ant-primary-color-outline: color-mix(in srgb, var(--iot-primary) 20%, transparent);
+    --ant-primary-1: var(--iot-primary-soft);
+    --ant-primary-2: var(--iot-primary-soft);
+    --ant-primary-color-deprecated-bg: var(--iot-primary-soft);
+    --ant-primary-color-deprecated-border: var(--iot-primary);
+    --ant-success-color: var(--iot-online);
+    --ant-warning-color: var(--iot-warning);
+    --ant-error-color: var(--iot-danger);
+    --ant-font-family: var(--iot-font);
+    --ant-font-size: var(--iot-fs-body);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --iot-t-fast: 0ms;
+        --iot-t-mid: 0ms;
+        --iot-t-slow: 0ms;
+    }
+}

@@ -1,0 +1,118 @@
+@page "/settings"
+@using IotStarter.App.Core.Platform
+@using IotStarter.App.Services
+@using IotStarter.Shared
+@implements IDisposable
+@inject IAppSettings AppSettings
+@inject IStringLocalizer<Strings> L
+
+<TopBar Title="@L["Settings.Title"]" />
+
+<div class="page-scroll">
+    <div class="page-content">
+        <h2 class="section-title">@L["Settings.Appearance"]</h2>
+        <div class="surface" style="padding:16px">
+            <Segmented TValue="ThemePreference"
+                       Block="true"
+                       Options="_themeOptions"
+                       Value="AppSettings.Theme"
+                       OnChange="SetTheme" />
+        </div>
+
+        <h2 class="section-title">@L["Settings.General"]</h2>
+        <div class="surface">
+            <button class="row" type="button" @onclick="() => _languageOpen = true">
+                <AppIcon Name="globe" />
+                <span class="row__main">
+                    <span class="row__title">@L["Settings.Language"]</span>
+                    <span class="row__sub">@LanguageLabel(AppSettings.Language)</span>
+                </span>
+                <span class="row__end"><AppIcon Name="chevron" Size="20" /></span>
+            </button>
+            <div class="row row--tappable" @onclick="ToggleDemo">
+                <AppIcon Name="flask" />
+                <span class="row__main">
+                    <span class="row__title">@L["Settings.Demo"]</span>
+                    <span class="row__sub">@L["Settings.Demo.Body"]</span>
+                </span>
+                <Switch Checked="AppSettings.DemoMode" Control="true" aria-label="@L["Settings.Demo"]" />
+            </div>
+        </div>
+
+        <h2 class="section-title">@L["Settings.About"]</h2>
+        <div class="surface">
+            <dl class="facts">
+                <dt>@L["Settings.Version"]</dt>
+                <dd><span dir="ltr">@AppInfo.Current.VersionString (@AppInfo.Current.BuildString)</span></dd>
+                <dt>@L["Settings.Protocol"]</dt>
+                <dd><span dir="ltr">BLE v@(ProtocolConstants.ProtocolVersion) · API v@(ProtocolConstants.ApiVersion)</span></dd>
+            </dl>
+            <p class="caption" style="margin:0;padding:0 16px 16px">@L["Settings.Privacy"]</p>
+        </div>
+    </div>
+</div>
+
+<Drawer Visible="_languageOpen" OnClose="() => _languageOpen = false" Placement="DrawerPlacement.Bottom" Height="auto" Title="@L["Settings.Language"].Value">
+    <div class="surface" role="radiogroup" aria-label="@L["Settings.Language"]">
+        @foreach (string? option in LanguageOptions)
+        {
+            bool selected = AppSettings.Language == option;
+            <button class="@(selected ? "row row--selected" : "row")" type="button" role="radio" aria-checked="@(selected ? "true" : "false")"
+                    @onclick="() => SetLanguage(option)">
+                <span class="radio-mark"></span>
+                <span class="row__main">
+                    <span class="row__title">@LanguageLabel(option)</span>
+                    @if (option == UiCulture.RtlPreview)
+                    {
+                        <span class="row__sub">@L["Settings.Language.RtlPreview.Body"]</span>
+                    }
+                </span>
+            </button>
+        }
+    </div>
+</Drawer>
+
+@code {
+    private static readonly string?[] LanguageOptions = [null, "en", UiCulture.RtlPreview];
+
+    private SegmentedOption<ThemePreference>[] _themeOptions = [];
+    private bool _languageOpen;
+
+    protected override void OnInitialized()
+    {
+        BuildOptions();
+        AppSettings.Changed += OnSettingsChanged;
+    }
+
+    private void BuildOptions() => _themeOptions =
+    [
+        new(ThemePreference.Light, L["Settings.Theme.Light"], false),
+        new(ThemePreference.Dark, L["Settings.Theme.Dark"], false),
+        new(ThemePreference.System, L["Settings.Theme.System"], false)
+    ];
+
+    private string LanguageLabel(string? language) => language switch
+    {
+        null => L["Settings.Language.System"],
+        UiCulture.RtlPreview => L["Settings.Language.RtlPreview"],
+        _ => System.Globalization.CultureInfo.GetCultureInfo(language).NativeName
+    };
+
+    private void SetTheme(ThemePreference theme) => AppSettings.Theme = theme;
+
+    private void ToggleDemo() => AppSettings.DemoMode = !AppSettings.DemoMode;
+
+    private void SetLanguage(string? language)
+    {
+        AppSettings.Language = language;
+        _languageOpen = false;
+    }
+
+    private void OnSettingsChanged(object? sender, EventArgs e) => _ = InvokeAsync(() =>
+    {
+        BuildOptions();
+        StateHasChanged();
+    });
+
+    public void Dispose() => AppSettings.Changed -= OnSettingsChanged;
+}

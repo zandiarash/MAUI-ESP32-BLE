@@ -1,0 +1,46 @@
+@using IotStarter.Shared
+@inject IStringLocalizer<Strings> L
+
+@* Live progress driven by the device's State notifications, then the network handover. *@
+<div class="page-scroll">
+    <div class="page-content" role="status" aria-live="polite">
+        <p class="wizard__lead">@L["Progress.Title"]</p>
+        <p class="muted" style="margin:0">@L["Progress.Body"]</p>
+
+        <div class="surface progress-steps" style="padding:20px 16px 4px">
+            <Steps Direction="StepsDirection.Vertical" Current="CurrentIndex" Size="StepsSize.Small">
+                <Step Title="@L["Progress.Sent"].Value" />
+                <Step Title="@L["Progress.Joining", Ssid ?? string.Empty].Value" Description="@(CurrentIndex == 1 ? L["Progress.Joining.Body"].Value : null)" />
+                <Step Title="@L["Progress.Finding"].Value" Description="@(CurrentIndex == 2 ? L["Progress.Finding.Body"].Value : null)" />
+            </Steps>
+        </div>
+    </div>
+</div>
+
+@if (!Rejoining && DeviceState != DeviceState.Connected)
+{
+    <div class="wizard__footer">
+        <Button Size="ButtonSize.Large" Block="true" Loading="CancelRequested" OnClick="() => OnCancel.InvokeAsync()">
+            @(CancelRequested ? L["Progress.Cancelling"] : L["Common.Cancel"])
+        </Button>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string? Ssid { get; set; }
+
+    [Parameter]
+    public DeviceState DeviceState { get; set; } = DeviceState.Connecting;
+
+    [Parameter]
+    public bool Rejoining { get; set; }
+
+    [Parameter]
+    public bool CancelRequested { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    private int CurrentIndex => Rejoining || DeviceState is DeviceState.Connected or DeviceState.Restarting ? 2 : 1;
+}

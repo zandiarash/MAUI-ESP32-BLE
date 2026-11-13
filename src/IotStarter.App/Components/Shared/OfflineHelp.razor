@@ -1,0 +1,43 @@
+@inject IStringLocalizer<Strings> L
+
+@* Explains why a device that has Wi-Fi may still be unreachable from the phone. *@
+<Drawer Visible="Visible"
+        VisibleChanged="VisibleChanged"
+        OnClose="() => VisibleChanged.InvokeAsync(false)"
+        Placement="DrawerPlacement.Bottom"
+        Height="auto"
+        Title="@L["Offline.Title"].Value">
+    <div class="stack">
+        <p class="muted" style="margin:0">@L["Offline.Intro"]</p>
+        <div class="row" style="padding-inline:0">
+            <span class="model-tile"><AppIcon Name="wifi" /></span>
+            <span class="row__main">
+                <span class="row__title">@L["Offline.OtherNetwork.Title"]</span>
+                <span class="row__sub">@L["Offline.OtherNetwork.Body"]</span>
+            </span>
+        </div>
+        <div class="row" style="padding-inline:0">
+            <span class="model-tile"><AppIcon Name="router" /></span>
+            <span class="row__main">
+                <span class="row__title">@L["Offline.Isolation.Title"]</span>
+                <span class="row__sub">@L["Offline.Isolation.Body"]</span>
+            </span>
+        </div>
+        <div class="row" style="padding-inline:0">
+            <span class="model-tile"><AppIcon Name="power" /></span>
+            <span class="row__main">
+                <span class="row__title">@L["Offline.Power.Title"]</span>
+                <span class="row__sub">@L["Offline.Power.Body"]</span>
+            </span>
+        </div>
+        <Button Size="ButtonSize.Large" Block="true" OnClick="() => VisibleChanged.InvokeAsync(false)">@L["Common.Close"]</Button>
+    </div>
+</Drawer>
+
+@code {
+    [Parameter]
+    public bool Visible { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> VisibleChanged { get; set; }
+}

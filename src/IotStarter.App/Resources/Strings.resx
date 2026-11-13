@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Common.Back" xml:space="preserve"><value>Back</value></data>
+  <data name="Common.Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Common.Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Common.Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="Common.Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Common.Signal" xml:space="preserve"><value>Signal strength {0} of 4</value></data>
+  <data name="Common.TryAgain" xml:space="preserve"><value>Try again</value></data>
+  <data name="Common.UnknownModel" xml:space="preserve"><value>Unknown model</value></data>
+  <data name="Nav.Label" xml:space="preserve"><value>Main navigation</value></data>
+  <data name="Nav.Devices" xml:space="preserve"><value>Devices</value></data>
+  <data name="Nav.Add" xml:space="preserve"><value>Add</value></data>
+  <data name="Nav.Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Status.Online" xml:space="preserve"><value>Online</value></data>
+  <data name="Status.Offline" xml:space="preserve"><value>Offline</value></data>
+  <data name="Status.Unauthorized" xml:space="preserve"><value>Needs setup again</value></data>
+  <data name="Status.Checking" xml:space="preserve"><value>Checking…</value></data>
+  <data name="Model.switch4" xml:space="preserve"><value>4-channel switch</value></data>
+  <data name="Model.Unknown" xml:space="preserve"><value>Unknown model ({0})</value></data>
+  <data name="Devices.Title" xml:space="preserve"><value>Devices</value></data>
+  <data name="Devices.Open" xml:space="preserve"><value>Open {0}</value></data>
+  <data name="Devices.DemoBanner" xml:space="preserve"><value>Demo mode is on. These devices are simulated; turn it off in Settings.</value></data>
+  <data name="Devices.Empty.Title" xml:space="preserve"><value>No devices yet</value></data>
+  <data name="Devices.Empty.Body" xml:space="preserve"><value>Add your first device to switch it from here.</value></data>
+  <data name="Devices.Empty.Action" xml:space="preserve"><value>Add device</value></data>
+  <data name="Devices.OfflineNote" xml:space="preserve"><value>Not found on this network.</value></data>
+  <data name="Devices.WhyOffline" xml:space="preserve"><value>Why?</value></data>
+  <data name="Devices.UnauthorizedNote" xml:space="preserve"><value>This phone is no longer allowed to control it. Open it to forget it, then set it up again.</value></data>
+  <data name="Devices.CheckingNote" xml:space="preserve"><value>Looking for it on your network…</value></data>
+  <data name="Network.Cellular.Title" xml:space="preserve"><value>You&apos;re on mobile data</value></data>
+  <data name="Network.None.Title" xml:space="preserve"><value>You&apos;re offline</value></data>
+  <data name="Network.Advice" xml:space="preserve"><value>Connect your phone to the same Wi-Fi as your devices to control them.</value></data>
+  <data name="Offline.Title" xml:space="preserve"><value>Why can&apos;t my phone reach it?</value></data>
+  <data name="Offline.Intro" xml:space="preserve"><value>The device may be working fine. These are the usual reasons:</value></data>
+  <data name="Offline.OtherNetwork.Title" xml:space="preserve"><value>Your phone is on a different network</value></data>
+  <data name="Offline.OtherNetwork.Body" xml:space="preserve"><value>Join the same Wi-Fi as the device. A guest network or mobile data won&apos;t work.</value></data>
+  <data name="Offline.Isolation.Title" xml:space="preserve"><value>The router keeps devices apart</value></data>
+  <data name="Offline.Isolation.Body" xml:space="preserve"><value>Some routers stop wireless devices from seeing each other (&quot;AP isolation&quot; or &quot;client isolation&quot;). Turn it off for your home network.</value></data>
+  <data name="Offline.Power.Title" xml:space="preserve"><value>The device is off or out of range</value></data>
+  <data name="Offline.Power.Body" xml:space="preserve"><value>Check that it has power. If your Wi-Fi changed, set the device up again.</value></data>
+  <data name="Device.NotFound.Title" xml:space="preserve"><value>Device not found</value></data>
+  <data name="Device.NotFound.Body" xml:space="preserve"><value>It may have been removed from this phone.</value></data>
+  <data name="Device.NotFound.Action" xml:space="preserve"><value>Back to devices</value></data>
+  <data name="Device.Rename" xml:space="preserve"><value>Rename</value></data>
+  <data name="Device.Rename.Label" xml:space="preserve"><value>Name</value></data>
+  <data name="Device.Rename.Invalid" xml:space="preserve"><value>Use 1 to 32 characters.</value></data>
+  <data name="Device.Rename.Done" xml:space="preserve"><value>Name saved</value></data>
+  <data name="Device.Offline.Title" xml:space="preserve"><value>Not found on this network</value></data>
+  <data name="Device.Offline.Body" xml:space="preserve"><value>Showing the last known state. Switches work again when the device is found.</value></data>
+  <data name="Device.Unauthorized.Title" xml:space="preserve"><value>This phone is no longer allowed to control it</value></data>
+  <data name="Device.Unauthorized.Body" xml:space="preserve"><value>The device was reset or set up with another phone. Forget it here, then add it again.</value></data>
+  <data name="Device.Outputs" xml:space="preserve"><value>Outputs</value></data>
+  <data name="Device.NoOutputs" xml:space="preserve"><value>This device reports no outputs.</value></data>
+  <data name="Device.About" xml:space="preserve"><value>About</value></data>
+  <data name="Device.Model" xml:space="preserve"><value>Model</value></data>
+  <data name="Device.Firmware" xml:space="preserve"><value>Firmware</value></data>
+  <data name="Device.Address" xml:space="preserve"><value>Address</value></data>
+  <data name="Device.Id" xml:space="preserve"><value>Device ID</value></data>
+  <data name="Device.LastSeen" xml:space="preserve"><value>Last seen</value></data>
+  <data name="Device.FoundVia.Mdns" xml:space="preserve"><value>(found by name)</value></data>
+  <data name="Device.FoundVia.Udp" xml:space="preserve"><value>(found by search)</value></data>
+  <data name="Device.Actions" xml:space="preserve"><value>Actions</value></data>
+  <data name="Device.Identify" xml:space="preserve"><value>Identify (blink the light)</value></data>
+  <data name="Device.Identify.Done" xml:space="preserve"><value>The device&apos;s light is blinking</value></data>
+  <data name="Device.Restart" xml:space="preserve"><value>Restart</value></data>
+  <data name="Device.Restart.Done" xml:space="preserve"><value>Restarting. It will be back in a few seconds.</value></data>
+  <data name="Device.Forget" xml:space="preserve"><value>Forget on this phone</value></data>
+  <data name="Device.Forget.Title" xml:space="preserve"><value>Forget this device?</value></data>
+  <data name="Device.Forget.Body" xml:space="preserve"><value>{0} stays connected to your Wi-Fi, but this phone won&apos;t control it any more. To use it again, factory reset it and add it again.</value></data>
+  <data name="Device.Forget.Confirm" xml:space="preserve"><value>Forget device</value></data>
+  <data name="Device.Forget.Done" xml:space="preserve"><value>Device forgotten</value></data>
+  <data name="Device.FactoryReset" xml:space="preserve"><value>Factory reset</value></data>
+  <data name="Device.Reset.Title" xml:space="preserve"><value>Factory reset this device?</value></data>
+  <data name="Device.Reset.Body" xml:space="preserve"><value>{0} will forget its Wi-Fi and this phone, switch everything off and wait to be set up again.</value></data>
+  <data name="Device.Reset.Confirm" xml:space="preserve"><value>Factory reset</value></data>
+  <data name="Device.Reset.Done" xml:space="preserve"><value>Device reset. You can set it up again from Add.</value></data>
+  <data name="Action.Unreachable" xml:space="preserve"><value>The device didn&apos;t answer. Check that it&apos;s powered and on this network.</value></data>
+  <data name="Action.Unauthorized" xml:space="preserve"><value>This phone is no longer allowed to control the device.</value></data>
+  <data name="Action.Rejected" xml:space="preserve"><value>The device refused the request.</value></data>
+  <data name="Action.Failed" xml:space="preserve"><value>Something went wrong. Please try again.</value></data>
+  <data name="Notice.SwitchFailed" xml:space="preserve"><value>Couldn&apos;t switch {0}. The change was undone.</value></data>
+  <data name="Notice.DeviceUnreachable" xml:space="preserve"><value>{0} isn&apos;t answering.</value></data>
+  <data name="Notice.DeviceUnauthorized" xml:space="preserve"><value>{0} no longer accepts this phone.</value></data>
+  <data name="Notice.ActionFailed" xml:space="preserve"><value>That didn&apos;t work on {0}.</value></data>
+  <data name="Notice.NotOnLocalNetwork" xml:space="preserve"><value>Connect to Wi-Fi to reach your devices.</value></data>
+  <data name="Settings.Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings.Appearance" xml:space="preserve"><value>Appearance</value></data>
+  <data name="Settings.Theme.Light" xml:space="preserve"><value>Light</value></data>
+  <data name="Settings.Theme.Dark" xml:space="preserve"><value>Dark</value></data>
+  <data name="Settings.Theme.System" xml:space="preserve"><value>System</value></data>
+  <data name="Settings.General" xml:space="preserve"><value>General</value></data>
+  <data name="Settings.Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings.Language.System" xml:space="preserve"><value>Same as phone</value></data>
+  <data name="Settings.Language.RtlPreview" xml:space="preserve"><value>English (right-to-left preview)</value></data>
+  <data name="Settings.Language.RtlPreview.Body" xml:space="preserve"><value>For checking layouts in right-to-left languages.</value></data>
+  <data name="Settings.Demo" xml:space="preserve"><value>Demo mode</value></data>
+  <data name="Settings.Demo.Body" xml:space="preserve"><value>Try the app with simulated devices, no hardware needed.</value></data>
+  <data name="Settings.About" xml:space="preserve"><value>About</value></data>
+  <data name="Settings.Version" xml:space="preserve"><value>Version</value></data>
+  <data name="Settings.Protocol" xml:space="preserve"><value>Protocol</value></data>
+  <data name="Settings.Privacy" xml:space="preserve"><value>Your Wi-Fi password is sent only to the device, over an encrypted Bluetooth link, and is never stored on this phone.</value></data>
+  <data name="Wizard.Title" xml:space="preserve"><value>Add a device</value></data>
+  <data name="Wizard.StepOf" xml:space="preserve"><value>Step {0} of {1} · {2}</value></data>
+  <data name="Wizard.Step0" xml:space="preserve"><value>Find</value></data>
+  <data name="Wizard.Step1" xml:space="preserve"><value>Wi-Fi</value></data>
+  <data name="Wizard.Step2" xml:space="preserve"><value>Connect</value></data>
+  <data name="Wizard.Step3" xml:space="preserve"><value>Done</value></data>
+  <data name="Wizard.Checking" xml:space="preserve"><value>Checking Bluetooth…</value></data>
+  <data name="Wizard.CloseConfirm.Title" xml:space="preserve"><value>Stop setting up?</value></data>
+  <data name="Wizard.CloseConfirm.Body" xml:space="preserve"><value>The device is joining your Wi-Fi. If you leave now, you may need to set it up again.</value></data>
+  <data name="Wizard.CloseConfirm.Confirm" xml:space="preserve"><value>Stop and leave</value></data>
+  <data name="Wizard.CloseConfirm.Stay" xml:space="preserve"><value>Keep going</value></data>
+  <data name="Blocked.BluetoothOff.Title" xml:space="preserve"><value>Turn on Bluetooth</value></data>
+  <data name="Blocked.BluetoothOff.Body" xml:space="preserve"><value>Bluetooth is used only to find a new device and give it your Wi-Fi details.</value></data>
+  <data name="Blocked.BluetoothUnsupported.Title" xml:space="preserve"><value>Bluetooth isn&apos;t available</value></data>
+  <data name="Blocked.BluetoothUnsupported.Body" xml:space="preserve"><value>This phone or computer has no Bluetooth LE, so it can&apos;t set up new devices. You can still control devices that are already set up.</value></data>
+  <data name="Blocked.PermissionDenied.Title" xml:space="preserve"><value>Allow nearby devices</value></data>
+  <data name="Blocked.PermissionDenied.Body" xml:space="preserve"><value>To find your new device, the app needs permission to scan for nearby Bluetooth devices.</value></data>
+  <data name="Blocked.PermissionDeniedPermanently.Title" xml:space="preserve"><value>Permission needed</value></data>
+  <data name="Blocked.PermissionDeniedPermanently.Body" xml:space="preserve"><value>Nearby-device access is turned off for this app. Turn it on in Settings, then come back.</value></data>
+  <data name="Blocked.OpenBluetooth" xml:space="preserve"><value>Open Bluetooth settings</value></data>
+  <data name="Blocked.Allow" xml:space="preserve"><value>Allow</value></data>
+  <data name="Blocked.OpenSettings" xml:space="preserve"><value>Open Settings</value></data>
+  <data name="Find.Title" xml:space="preserve"><value>Choose your device</value></data>
+  <data name="Find.Looking" xml:space="preserve"><value>Looking for devices nearby…</value></data>
+  <data name="Find.Found" xml:space="preserve"><value>{0} found. Still looking…</value></data>
+  <data name="Find.Demo" xml:space="preserve"><value>Demo mode: these devices are simulated.</value></data>
+  <data name="Find.Identifying" xml:space="preserve"><value>Identifying…</value></data>
+  <data name="Find.NeedsUpdate" xml:space="preserve"><value>Update the app</value></data>
+  <data name="Find.Help.Title" xml:space="preserve"><value>Can&apos;t see your device?</value></data>
+  <data name="Find.Help.Power" xml:space="preserve"><value>Plug it in. Its light blinks twice in a row when it&apos;s ready.</value></data>
+  <data name="Find.Help.Reset" xml:space="preserve"><value>Already set up with another phone? Hold its button for 5 seconds to reset it.</value></data>
+  <data name="Find.Help.Close" xml:space="preserve"><value>Keep your phone within a few metres of it.</value></data>
+  <data name="Find.Help.Location" xml:space="preserve"><value>On this Android version, Location must be on to find Bluetooth devices.</value></data>
+  <data name="Connecting.Title" xml:space="preserve"><value>Connecting to {0}…</value></data>
+  <data name="Connecting.Body" xml:space="preserve"><value>This takes a few seconds.</value></data>
+  <data name="Connecting.Pairing.Title" xml:space="preserve"><value>Confirm pairing</value></data>
+  <data name="Connecting.Pairing.Body" xml:space="preserve"><value>If your phone asks to pair, tap Pair. This keeps your Wi-Fi password private.</value></data>
+  <data name="Network.Title" xml:space="preserve"><value>Wi-Fi for {0}</value></data>
+  <data name="Network.Recovery.Title" xml:space="preserve"><value>This device is already yours</value></data>
+  <data name="Network.Recovery.Body" xml:space="preserve"><value>It couldn&apos;t reach its Wi-Fi. Enter the new network details to reconnect it.</value></data>
+  <data name="Network.Band" xml:space="preserve"><value>Your device needs a 2.4 GHz Wi-Fi network. 5 GHz-only networks won&apos;t work.</value></data>
+  <data name="Network.Seen" xml:space="preserve"><value>Networks the device can see</value></data>
+  <data name="Network.Rescan" xml:space="preserve"><value>Scan again</value></data>
+  <data name="Network.ScanFailed" xml:space="preserve"><value>Couldn&apos;t list networks. Scan again, or type the name below.</value></data>
+  <data name="Network.NoneSeen" xml:space="preserve"><value>No networks found. Scan again, or type the name below.</value></data>
+  <data name="Network.Other" xml:space="preserve"><value>Other network…</value></data>
+  <data name="Network.Other.Body" xml:space="preserve"><value>For hidden networks</value></data>
+  <data name="Network.Ssid" xml:space="preserve"><value>Network name</value></data>
+  <data name="Network.Ssid.Placeholder" xml:space="preserve"><value>Exactly as it appears on your router</value></data>
+  <data name="Network.Password" xml:space="preserve"><value>Password</value></data>
+  <data name="Network.Password.Placeholder" xml:space="preserve"><value>Wi-Fi password</value></data>
+  <data name="Network.Password.Hint" xml:space="preserve"><value>Leave empty for an open network.</value></data>
+  <data name="Network.DemoHint" xml:space="preserve"><value>Demo: the password for {0} is {1}. Try a wrong one too.</value></data>
+  <data name="Network.OtherDevice" xml:space="preserve"><value>Choose a different device</value></data>
+  <data name="Network.Connect" xml:space="preserve"><value>Connect</value></data>
+  <data name="Credential.SsidMissing" xml:space="preserve"><value>Enter the network name.</value></data>
+  <data name="Credential.SsidTooLong" xml:space="preserve"><value>That network name is too long (32 bytes at most).</value></data>
+  <data name="Credential.PasswordTooShort" xml:space="preserve"><value>Wi-Fi passwords have at least 8 characters.</value></data>
+  <data name="Credential.PasswordTooLong" xml:space="preserve"><value>Wi-Fi passwords have at most 63 characters.</value></data>
+  <data name="Credential.PasswordInvalidCharacters" xml:space="preserve"><value>Use only letters, numbers, spaces and standard symbols.</value></data>
+  <data name="Progress.Title" xml:space="preserve"><value>Connecting your device</value></data>
+  <data name="Progress.Body" xml:space="preserve"><value>Keep the app open. This usually takes under 30 seconds.</value></data>
+  <data name="Progress.Sent" xml:space="preserve"><value>Wi-Fi details sent</value></data>
+  <data name="Progress.Joining" xml:space="preserve"><value>Joining {0}</value></data>
+  <data name="Progress.Joining.Body" xml:space="preserve"><value>The device is signing in to your network.</value></data>
+  <data name="Progress.Finding" xml:space="preserve"><value>Finding it on your network</value></data>
+  <data name="Progress.Finding.Body" xml:space="preserve"><value>The device restarts and comes online.</value></data>
+  <data name="Progress.Cancelling" xml:space="preserve"><value>Cancelling…</value></data>
+  <data name="Naming.Title" xml:space="preserve"><value>Your device is connected</value></data>
+  <data name="Naming.Body" xml:space="preserve"><value>Give it a name you&apos;ll recognise.</value></data>
+  <data name="Naming.Label" xml:space="preserve"><value>Name</value></data>
+  <data name="Naming.Placeholder" xml:space="preserve"><value>For example, Kitchen lights</value></data>
+  <data name="Naming.Action" xml:space="preserve"><value>Open controls</value></data>
+  <data name="Failure.Retry.Credentials" xml:space="preserve"><value>Check details and try again</value></data>
+  <data name="Failure.StartOver" xml:space="preserve"><value>Choose another device</value></data>
+  <data name="Failure.ConnectFailed.Title" xml:space="preserve"><value>Couldn&apos;t connect to the device</value></data>
+  <data name="Failure.ConnectFailed.Advice" xml:space="preserve"><value>Move closer, make sure it&apos;s powered, and try again.</value></data>
+  <data name="Failure.PairingFailed.Title" xml:space="preserve"><value>Pairing didn&apos;t finish</value></data>
+  <data name="Failure.PairingFailed.Advice" xml:space="preserve"><value>Tap Pair when your phone asks. If it keeps failing, remove the device from your phone&apos;s Bluetooth settings and try again.</value></data>
+  <data name="Failure.UnsupportedDevice.Title" xml:space="preserve"><value>This device needs a newer app</value></data>
+  <data name="Failure.UnsupportedDevice.Advice" xml:space="preserve"><value>Update IoT Starter, then try again.</value></data>
+  <data name="Failure.DeviceDisconnected.Title" xml:space="preserve"><value>The connection dropped</value></data>
+  <data name="Failure.DeviceDisconnected.Advice" xml:space="preserve"><value>Stay close to the device and try again. What you typed is kept.</value></data>
+  <data name="Failure.WrongPassword.Title" xml:space="preserve"><value>Wrong Wi-Fi password</value></data>
+  <data name="Failure.WrongPassword.Advice" xml:space="preserve"><value>Check upper and lower case and try again.</value></data>
+  <data name="Failure.NetworkNotFound.Title" xml:space="preserve"><value>Can&apos;t find {0}</value></data>
+  <data name="Failure.NetworkNotFound.Advice" xml:space="preserve"><value>Move the device closer to the router. The network must be 2.4 GHz, and the name must match exactly.</value></data>
+  <data name="Failure.NoIpAddress.Title" xml:space="preserve"><value>The router didn&apos;t give it an address</value></data>
+  <data name="Failure.NoIpAddress.Advice" xml:space="preserve"><value>Restart the router, or check that it isn&apos;t blocking new devices (MAC filtering or a full address pool).</value></data>
+  <data name="Failure.WifiTimeout.Title" xml:space="preserve"><value>The network didn&apos;t answer in time</value></data>
+  <data name="Failure.WifiTimeout.Advice" xml:space="preserve"><value>Move closer to the router and try again.</value></data>
+  <data name="Failure.UnsupportedSecurity.Title" xml:space="preserve"><value>This network type isn&apos;t supported</value></data>
+  <data name="Failure.UnsupportedSecurity.Advice" xml:space="preserve"><value>Use a home network with a password (WPA2) or an open network. Company (Enterprise) networks aren&apos;t supported.</value></data>
+  <data name="Failure.NotAuthorized.Title" xml:space="preserve"><value>This device belongs to another phone</value></data>
+  <data name="Failure.NotAuthorized.Advice" xml:space="preserve"><value>Set it up from the phone it belongs to, or factory reset it by holding its button for 5 seconds.</value></data>
+  <data name="Failure.NotOwner.Title" xml:space="preserve"><value>This device is set up with another phone</value></data>
+  <data name="Failure.NotOwner.Advice" xml:space="preserve"><value>Factory reset it by holding its button for 5 seconds, then add it again.</value></data>
+  <data name="Failure.DeviceError.Title" xml:space="preserve"><value>The device reported a problem</value></data>
+  <data name="Failure.DeviceError.Advice" xml:space="preserve"><value>Try again. If it keeps happening, restart the device.</value></data>
+  <data name="Failure.Unreachable.Title" xml:space="preserve"><value>Connected, but your phone can&apos;t reach it</value></data>
+  <data name="Failure.Unreachable.Advice" xml:space="preserve"><value>The device joined your Wi-Fi. These are the usual reasons your phone can&apos;t see it:</value></data>
+  <data name="NotFound.Title" xml:space="preserve"><value>Page not found</value></data>
+  <data name="NotFound.Body" xml:space="preserve"><value>That screen doesn&apos;t exist.</value></data>
+</root>

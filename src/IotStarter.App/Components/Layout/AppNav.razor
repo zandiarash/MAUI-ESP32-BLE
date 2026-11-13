@@ -1,0 +1,35 @@
+@implements IDisposable
+@inject NavigationManager Nav
+@inject IStringLocalizer<Strings> L
+
+<nav class="app-nav" aria-label="@L["Nav.Label"]">
+    <a class="app-nav__item" href="/" aria-current="@Current("/")">
+        <span class="app-nav__pill"><AppIcon Name="devices" /></span>
+        <span>@L["Nav.Devices"]</span>
+    </a>
+    <a class="app-nav__item app-nav__item--add" href="/add">
+        <span class="app-nav__pill"><AppIcon Name="plus" /></span>
+        <span>@L["Nav.Add"]</span>
+    </a>
+    <a class="app-nav__item" href="/settings" aria-current="@Current("/settings")">
+        <span class="app-nav__pill"><AppIcon Name="settings" /></span>
+        <span>@L["Nav.Settings"]</span>
+    </a>
+</nav>
+
+@code {
+    protected override void OnInitialized() => Nav.LocationChanged += OnLocationChanged;
+
+    private string? Current(string path)
+    {
+        string relative = "/" + Nav.ToBaseRelativePath(Nav.Uri);
+        bool active = path == "/"
+            ? relative == "/" || relative.StartsWith("/device/", StringComparison.Ordinal)
+            : relative.StartsWith(path, StringComparison.Ordinal);
+        return active ? "page" : null;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => StateHasChanged();
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+}

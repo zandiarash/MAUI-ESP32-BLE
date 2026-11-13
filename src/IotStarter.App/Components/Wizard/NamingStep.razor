@@ -1,0 +1,39 @@
+@using IotStarter.App.Core.Provisioning
+@inject IStringLocalizer<Strings> L
+
+<div class="page-scroll">
+    <div class="centered">
+        <div class="centered__art"><AppIcon Name="check" Size="44" /></div>
+        <h2>@L["Naming.Title"]</h2>
+        <p>@L["Naming.Body"]</p>
+        <div class="field" style="width:100%;max-width:360px;text-align:start">
+            <label for="name-input">@L["Naming.Label"]</label>
+            <Input TValue="string" id="name-input" @bind-Value="_name" Size="InputSize.Large" MaxLength="32" BindOnInput="true"
+                   OnPressEnter="FinishAsync" Placeholder="@L["Naming.Placeholder"].Value" />
+        </div>
+    </div>
+</div>
+
+<div class="wizard__footer">
+    <Button Type="ButtonType.Primary" Size="ButtonSize.Large" Block="true" Loading="_busy" OnClick="FinishAsync">@L["Naming.Action"]</Button>
+</div>
+
+@code {
+    private string _name = string.Empty;
+    private bool _busy;
+
+    [Parameter, EditorRequired]
+    public WizardNaming State { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback<string> OnFinish { get; set; }
+
+    protected override void OnInitialized() => _name = State.SuggestedName;
+
+    private async Task FinishAsync()
+    {
+        _busy = true;
+        await OnFinish.InvokeAsync(_name);
+        _busy = false;
+    }
+}

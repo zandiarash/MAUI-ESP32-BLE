@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="docs/design-review.md" />
+    <File Path="docs/protocol.md" />
+    <File Path="global.json" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/IotStarter.App.Core/IotStarter.App.Core.csproj" />
+    <Project Path="src/IotStarter.App/IotStarter.App.csproj">
+      <Deploy />
+    </Project>
+    <Project Path="src/IotStarter.Firmware/IotStarter.Firmware.nfproj" Type="11a8dd76-328b-46df-9f39-f559912d0360">
+      <Deploy />
+    </Project>
+    <Project Path="src/IotStarter.Shared/IotStarter.Shared.shproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/IotStarter.App.Core.Tests/IotStarter.App.Core.Tests.csproj" />
+  </Folder>
+</Solution>

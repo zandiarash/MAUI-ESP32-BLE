@@ -1,0 +1,89 @@
+@using IotStarter.App.Core.Ble
+@using IotStarter.App.Core.Provisioning
+@inject IStringLocalizer<Strings> L
+
+<div class="page-scroll">
+    <div class="page-content">
+        <p class="wizard__lead">@L["Find.Title"]</p>
+        <div class="scan-pulse" role="status">
+            <span class="scan-pulse__dot"></span>
+            <span>@(State.Devices.Count == 0 ? L["Find.Looking"] : L["Find.Found", State.Devices.Count])</span>
+        </div>
+
+        @if (DemoMode)
+        {
+            <Alert Type="AlertType.Info" ShowIcon="true" Message="@L["Find.Demo"].Value" />
+        }
+
+        <div class="surface">
+            @if (State.Devices.Count == 0)
+            {
+                @for (int i = 0; i < 2; i++)
+                {
+                    <div class="skeleton-row" aria-hidden="true" style="gap:12px">
+                        <div class="skeleton-block" style="inline-size:44px;block-size:44px;border-radius:12px"></div>
+                        <div class="skeleton-block" style="block-size:16px;inline-size:45%"></div>
+                    </div>
+                }
+            }
+            else
+            {
+                @foreach (DiscoveredDevice device in State.Devices)
+                {
+                    <button class="row" type="button" @key="device.PeripheralId"
+                            disabled="@device.IsUnsupportedProtocol"
+                            @onclick="() => OnSelect.InvokeAsync(device.PeripheralId)">
+                        <ModelTile ModelId="device.Model is null ? null : device.ModelId" />
+                        <span class="row__main">
+                            <span class="row__title" dir="ltr" style="text-align:start">@device.Name</span>
+                            <span class="row__sub">
+                                @if (device.IsUnsupportedProtocol)
+                                {
+                                    <Tag Color="@TagColor.Red">@L["Find.NeedsUpdate"]</Tag>
+                                }
+                                else if (device.ModelId is null)
+                                {
+                                    <span>@L["Find.Identifying"]</span>
+                                }
+                                else if (device.IsUnknownModel)
+                                {
+                                    <Tag Color="@TagColor.Orange">@L["Common.UnknownModel"]</Tag>
+                                }
+                                else
+                                {
+                                    <span>@L.ModelName(device.ModelId.Value)</span>
+                                }
+                            </span>
+                        </span>
+                        <span class="row__end">
+                            <SignalBars Rssi="device.Rssi" />
+                            <AppIcon Name="chevron" Size="20" />
+                        </span>
+                    </button>
+                }
+            }
+        </div>
+
+        <h2 class="section-title">@L["Find.Help.Title"]</h2>
+        <ul class="tips">
+            <li>@L["Find.Help.Power"]</li>
+            <li>@L["Find.Help.Reset"]</li>
+            <li>@L["Find.Help.Close"]</li>
+            @if (Microsoft.Maui.Devices.DeviceInfo.Current.Platform == DevicePlatform.Android && Microsoft.Maui.Devices.DeviceInfo.Current.Version.Major < 12)
+            {
+                <li>@L["Find.Help.Location"]</li>
+            }
+        </ul>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public WizardScanning State { get; set; } = null!;
+
+    [Parameter]
+    public bool DemoMode { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnSelect { get; set; }
+}

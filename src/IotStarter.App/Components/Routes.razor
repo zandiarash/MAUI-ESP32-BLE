@@ -1,0 +1,81 @@
+﻿@using IotStarter.App.Core.Platform
+@using IotStarter.App.Core.State
+@using IotStarter.App.Services
+@implements IDisposable
+@inject IAppSettings Settings
+@inject UiCulture Culture
+@inject AppState State
+@inject IJSRuntime JS
+@inject IMessageService Message
+@inject IStringLocalizer<Strings> L
+
+@* Root: applies theme and text direction, hosts Ant Design's popup container and turns
+   AppState notices into short toasts. *@
+<ConfigProvider Direction="@(Culture.IsRightToLeft ? "RTL" : "LTR")">
+    <Router AppAssembly="typeof(MauiProgram).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+        <Found Context="routeData">
+            <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+            <FocusOnNavigate RouteData="routeData" Selector="h1" />
+        </Found>
+    </Router>
+    <AntContainer />
+</ConfigProvider>
+
+@code {
+    private ThemePreference _appliedTheme = (ThemePreference)(-1);
+    private string? _appliedDirection;
+
+    protected override void OnInitialized()
+    {
+        Culture.Apply();
+        Settings.Changed += OnSettingsChanged;
+        State.Notice += OnNotice;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            if (Settings.Theme != _appliedTheme)
+            {
+                await JS.InvokeVoidAsync("iotStarter.applyTheme", Settings.Theme.ToString().ToLowerInvariant());
+                _appliedTheme = Settings.Theme;
+            }
+
+            if (Culture.Direction != _appliedDirection)
+            {
+                await JS.InvokeVoidAsync("iotStarter.setDirection", Culture.Direction, Culture.Culture.Name);
+                _appliedDirection = Culture.Direction;
+            }
+        }
+        catch (JSException)
+        {
+            // The page script is not ready yet; the next render applies it.
+        }
+        catch (JSDisconnectedException)
+        {
+            // The WebView is closing.
+        }
+    }
+
+    private void OnSettingsChanged(object? sender, EventArgs e)
+    {
+        Culture.Apply();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void OnNotice(AppNotice notice)
+    {
+        string? name = notice.DeviceId is null ? null : State.Find(notice.DeviceId)?.Record.Name;
+        string text = L.Notice(notice.Kind, name);
+        _ = InvokeAsync(() => notice.Kind == NoticeKind.NotOnLocalNetwork
+            ? Message.InfoAsync(text)
+            : Message.WarningAsync(text));
+    }
+
+    public void Dispose()
+    {
+        Settings.Changed -= OnSettingsChanged;
+        State.Notice -= OnNotice;
+    }
+}

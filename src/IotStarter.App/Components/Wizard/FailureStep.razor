@@ -1,0 +1,71 @@
+@using IotStarter.App.Core.Provisioning
+@inject IStringLocalizer<Strings> L
+
+<div class="page-scroll">
+    <div class="centered" role="alert">
+        <div class="@($"centered__art {(Severe ? "centered__art--danger" : "centered__art--warning")}")">
+            <AppIcon Name="@Icon" Size="44" />
+        </div>
+        <h2>@L.FailureTitle(Failure.Kind, Ssid)</h2>
+        <p>@L.FailureAdvice(Failure.Kind)</p>
+
+        @if (Failure.Kind == FailureKind.Unreachable)
+        {
+            <div class="surface" style="width:100%;max-width:420px;text-align:start">
+                <div class="row">
+                    <AppIcon Name="wifi" />
+                    <span class="row__main">
+                        <span class="row__title">@L["Offline.OtherNetwork.Title"]</span>
+                        <span class="row__sub">@L["Offline.OtherNetwork.Body"]</span>
+                    </span>
+                </div>
+                <div class="row">
+                    <AppIcon Name="router" />
+                    <span class="row__main">
+                        <span class="row__title">@L["Offline.Isolation.Title"]</span>
+                        <span class="row__sub">@L["Offline.Isolation.Body"]</span>
+                    </span>
+                </div>
+            </div>
+        }
+
+        <div class="actions">
+            <Button Type="ButtonType.Primary" Size="ButtonSize.Large" Block="true" OnClick="() => OnRetry.InvokeAsync()">
+                @L[Failure.Retry == RetryTarget.Credentials ? "Failure.Retry.Credentials" : "Common.TryAgain"]
+            </Button>
+            @if (Failure.Retry != RetryTarget.Scan)
+            {
+                <Button Size="ButtonSize.Large" Block="true" OnClick="() => OnStartOver.InvokeAsync()">@L["Failure.StartOver"]</Button>
+            }
+            <Button Type="ButtonType.Text" Size="ButtonSize.Large" Block="true" OnClick="() => OnClose.InvokeAsync()">@L["Common.Close"]</Button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public WizardFailure Failure { get; set; } = null!;
+
+    [Parameter]
+    public string? Ssid { get; set; }
+
+    [Parameter]
+    public EventCallback OnRetry { get; set; }
+
+    [Parameter]
+    public EventCallback OnStartOver { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private bool Severe => Failure.Kind is FailureKind.NotAuthorized or FailureKind.NotOwner or FailureKind.UnsupportedDevice or FailureKind.DeviceError;
+
+    private string Icon => Failure.Kind switch
+    {
+        FailureKind.WrongPassword => "lock",
+        FailureKind.NetworkNotFound or FailureKind.WifiTimeout or FailureKind.NoIpAddress => "wifi-off",
+        FailureKind.Unreachable => "router",
+        FailureKind.ConnectFailed or FailureKind.PairingFailed or FailureKind.DeviceDisconnected => "bluetooth",
+        _ => "error"
+    };
+}

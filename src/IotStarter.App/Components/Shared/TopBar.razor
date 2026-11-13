@@ -1,0 +1,60 @@
+@inject NavigationManager Nav
+@inject IStringLocalizer<Strings> L
+
+<header class="topbar">
+    @if (ShowBack)
+    {
+        <button class="icon-button" type="button" aria-label="@L["Common.Back"]" @onclick="GoBackAsync">
+            <AppIcon Name="back" />
+        </button>
+    }
+    else if (Leading is not null)
+    {
+        @Leading
+    }
+
+    <div class="topbar__titles">
+        <h1 class="topbar__title"><bdi>@Title</bdi></h1>
+        @if (Subtitle is not null)
+        {
+            <div class="topbar__subtitle">@Subtitle</div>
+        }
+    </div>
+
+    @Actions
+</header>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public RenderFragment? Subtitle { get; set; }
+
+    [Parameter]
+    public RenderFragment? Actions { get; set; }
+
+    [Parameter]
+    public RenderFragment? Leading { get; set; }
+
+    [Parameter]
+    public bool ShowBack { get; set; }
+
+    /// <summary>Where "back" goes; defaults to the device list.</summary>
+    [Parameter]
+    public string BackTo { get; set; } = "/";
+
+    [Parameter]
+    public EventCallback OnBack { get; set; }
+
+    private async Task GoBackAsync()
+    {
+        if (OnBack.HasDelegate)
+        {
+            await OnBack.InvokeAsync();
+            return;
+        }
+
+        Nav.NavigateTo(BackTo);
+    }
+}

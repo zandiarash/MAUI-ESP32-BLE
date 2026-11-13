@@ -1,0 +1,36 @@
+@using IotStarter.App.Core.Platform
+@using IotStarter.App.Core.Provisioning
+@inject IPermissionService Permissions
+@inject IStringLocalizer<Strings> L
+
+<div class="page-scroll">
+    <div class="centered">
+        <div class="centered__art centered__art--warning"><AppIcon Name="@(Reason is BlockReason.BluetoothOff or BlockReason.BluetoothUnsupported ? "bluetooth" : "lock")" Size="44" /></div>
+        <h2>@L[$"Blocked.{Reason}.Title"]</h2>
+        <p>@L[$"Blocked.{Reason}.Body"]</p>
+        <div class="actions">
+            @switch (Reason)
+            {
+                case BlockReason.BluetoothOff:
+                    <Button Type="ButtonType.Primary" Size="ButtonSize.Large" Block="true" OnClick="Permissions.OpenBluetoothSettings">@L["Blocked.OpenBluetooth"]</Button>
+                    <Button Size="ButtonSize.Large" Block="true" OnClick="() => OnRetry.InvokeAsync()">@L["Common.TryAgain"]</Button>
+                    break;
+                case BlockReason.PermissionDenied:
+                    <Button Type="ButtonType.Primary" Size="ButtonSize.Large" Block="true" OnClick="() => OnRetry.InvokeAsync()">@L["Blocked.Allow"]</Button>
+                    break;
+                case BlockReason.PermissionDeniedPermanently:
+                    <Button Type="ButtonType.Primary" Size="ButtonSize.Large" Block="true" OnClick="Permissions.OpenAppSettings">@L["Blocked.OpenSettings"]</Button>
+                    <Button Size="ButtonSize.Large" Block="true" OnClick="() => OnRetry.InvokeAsync()">@L["Common.TryAgain"]</Button>
+                    break;
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public BlockReason Reason { get; set; }
+
+    [Parameter]
+    public EventCallback OnRetry { get; set; }
+}

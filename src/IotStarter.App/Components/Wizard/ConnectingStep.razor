@@ -1,0 +1,16 @@
+@using IotStarter.App.Core.Provisioning
+@inject IStringLocalizer<Strings> L
+
+<div class="page-scroll">
+    <div class="centered" role="status">
+        <div class="centered__art"><AppIcon Name="bluetooth" Size="44" /></div>
+        <h2>@(State.Phase == ConnectPhase.Pairing ? L["Connecting.Pairing.Title"] : L["Connecting.Title", State.Device.Name])</h2>
+        <p>@(State.Phase == ConnectPhase.Pairing ? L["Connecting.Pairing.Body"] : L["Connecting.Body"])</p>
+        <Spin />
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public WizardConnecting State { get; set; } = null!;
+}

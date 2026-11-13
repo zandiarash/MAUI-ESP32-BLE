@@ -1,0 +1,19 @@
+@using IotStarter.App.Core.Platform
+@inject IStringLocalizer<Strings> L
+
+@* Shown when the phone is not on a local network, so nothing on the LAN can be reached. *@
+@if (State != LocalNetworkState.LocalNetwork && !DemoMode)
+{
+    <Alert Type="AlertType.Warning"
+           ShowIcon="true"
+           Message="@L[State == LocalNetworkState.None ? "Network.None.Title" : "Network.Cellular.Title"].Value"
+           Description="@L["Network.Advice"].Value" />
+}
+
+@code {
+    [Parameter]
+    public LocalNetworkState State { get; set; }
+
+    [Parameter]
+    public bool DemoMode { get; set; }
+}

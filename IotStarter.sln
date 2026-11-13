@@ -1,0 +1,73 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.0.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1F0C2B7A-6E5D-4C3B-9A8F-0E1D2C3B4A51}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{2E1D3C8B-7F6E-4D5C-8B9A-1F2E3D4C5B62}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3D2E4F9C-8A7B-4E6D-9C0B-2A3F4E5D6C73}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+		global.json = global.json
+		docs\protocol.md = docs\protocol.md
+		docs\design-review.md = docs\design-review.md
+	EndProjectSection
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "IotStarter.Shared", "src\IotStarter.Shared\IotStarter.Shared.shproj", "{8E3C5A57-2F0B-4D8A-9A31-6C1E0F4B7D21}"
+EndProject
+Project("{11A8DD76-328B-46DF-9F39-F559912D0360}") = "IotStarter.Firmware", "src\IotStarter.Firmware\IotStarter.Firmware.nfproj", "{3B6E2F1A-9C4D-4E7B-8A15-D2C0F7A94E36}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IotStarter.App.Core", "src\IotStarter.App.Core\IotStarter.App.Core.csproj", "{5C2A9E71-4B3D-4F8A-B6E2-1D7C9A0F3E52}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IotStarter.App", "src\IotStarter.App\IotStarter.App.csproj", "{7E4B1C93-2A6F-4D5E-9B8C-3F1A2E7D6C04}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IotStarter.App.Core.Tests", "tests\IotStarter.App.Core.Tests\IotStarter.App.Core.Tests.csproj", "{9A6D3E15-8C2B-4F7A-A1E9-5B4C7D2F8E63}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		src\IotStarter.Shared\IotStarter.Shared.projitems*{8e3c5a57-2f0b-4d8a-9a31-6c1e0f4b7d21}*SharedItemsImports = 13
+		src\IotStarter.Shared\IotStarter.Shared.projitems*{3b6e2f1a-9c4d-4e7b-8a15-d2c0f7a94e36}*SharedItemsImports = 4
+		src\IotStarter.Shared\IotStarter.Shared.projitems*{5c2a9e71-4b3d-4f8a-b6e2-1d7c9a0f3e52}*SharedItemsImports = 5
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3B6E2F1A-9C4D-4E7B-8A15-D2C0F7A94E36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B6E2F1A-9C4D-4E7B-8A15-D2C0F7A94E36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B6E2F1A-9C4D-4E7B-8A15-D2C0F7A94E36}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{3B6E2F1A-9C4D-4E7B-8A15-D2C0F7A94E36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B6E2F1A-9C4D-4E7B-8A15-D2C0F7A94E36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B6E2F1A-9C4D-4E7B-8A15-D2C0F7A94E36}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{5C2A9E71-4B3D-4F8A-B6E2-1D7C9A0F3E52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C2A9E71-4B3D-4F8A-B6E2-1D7C9A0F3E52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C2A9E71-4B3D-4F8A-B6E2-1D7C9A0F3E52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C2A9E71-4B3D-4F8A-B6E2-1D7C9A0F3E52}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E4B1C93-2A6F-4D5E-9B8C-3F1A2E7D6C04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E4B1C93-2A6F-4D5E-9B8C-3F1A2E7D6C04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E4B1C93-2A6F-4D5E-9B8C-3F1A2E7D6C04}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{7E4B1C93-2A6F-4D5E-9B8C-3F1A2E7D6C04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E4B1C93-2A6F-4D5E-9B8C-3F1A2E7D6C04}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E4B1C93-2A6F-4D5E-9B8C-3F1A2E7D6C04}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{9A6D3E15-8C2B-4F7A-A1E9-5B4C7D2F8E63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A6D3E15-8C2B-4F7A-A1E9-5B4C7D2F8E63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A6D3E15-8C2B-4F7A-A1E9-5B4C7D2F8E63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A6D3E15-8C2B-4F7A-A1E9-5B4C7D2F8E63}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8E3C5A57-2F0B-4D8A-9A31-6C1E0F4B7D21} = {1F0C2B7A-6E5D-4C3B-9A8F-0E1D2C3B4A51}
+		{3B6E2F1A-9C4D-4E7B-8A15-D2C0F7A94E36} = {1F0C2B7A-6E5D-4C3B-9A8F-0E1D2C3B4A51}
+		{5C2A9E71-4B3D-4F8A-B6E2-1D7C9A0F3E52} = {1F0C2B7A-6E5D-4C3B-9A8F-0E1D2C3B4A51}
+		{7E4B1C93-2A6F-4D5E-9B8C-3F1A2E7D6C04} = {1F0C2B7A-6E5D-4C3B-9A8F-0E1D2C3B4A51}
+		{9A6D3E15-8C2B-4F7A-A1E9-5B4C7D2F8E63} = {2E1D3C8B-7F6E-4D5C-8B9A-1F2E3D4C5B62}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4C3F5A0D-9B8C-4F7E-A1D2-3B4C5D6E7F84}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,178 @@
+@using IotStarter.App.Core.Demo
+@using IotStarter.App.Core.Provisioning
+@using IotStarter.Shared
+@implements IDisposable
+@inject IStringLocalizer<Strings> L
+
+<div class="page-scroll">
+    <div class="page-content">
+        <p class="wizard__lead">@L["Network.Title", State.Device.Name]</p>
+
+        @if (State.Info.Has(Capability.TokenRequired))
+        {
+            <Alert Type="AlertType.Info" ShowIcon="true" Message="@L["Network.Recovery.Title"].Value" Description="@L["Network.Recovery.Body"].Value" />
+        }
+
+        @if (State.PreviousFailure is { } previous)
+        {
+            <Alert Type="AlertType.Warning" ShowIcon="true" Message="@L.FailureTitle(previous.Kind, null)" Description="@L.FailureAdvice(previous.Kind)" />
+        }
+
+        <Alert Type="AlertType.Info" ShowIcon="true" Message="@L["Network.Band"].Value" />
+
+        @if (State.ScanStatus != NetworkScanStatus.Unsupported)
+        {
+            <div style="display:flex;align-items:center;justify-content:space-between">
+                <h2 class="section-title" style="margin:0">@L["Network.Seen"]</h2>
+                <button class="icon-button" type="button" aria-label="@L["Network.Rescan"]"
+                        disabled="@(State.ScanStatus == NetworkScanStatus.Scanning)" @onclick="() => Wizard.RefreshNetworksAsync()">
+                    <AppIcon Name="refresh" Size="20" />
+                </button>
+            </div>
+
+            <div class="surface" role="radiogroup" aria-label="@L["Network.Seen"]">
+                @if (State.ScanStatus == NetworkScanStatus.Scanning && State.Networks.Count == 0)
+                {
+                    @for (int i = 0; i < 3; i++)
+                    {
+                        <div class="skeleton-row" aria-hidden="true">
+                            <div class="skeleton-block" style="block-size:16px;inline-size:50%"></div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    @if (State.ScanStatus == NetworkScanStatus.Failed)
+                    {
+                        <div class="row"><span class="small muted">@L["Network.ScanFailed"]</span></div>
+                    }
+                    else if (State.Networks.Count == 0)
+                    {
+                        <div class="row"><span class="small muted">@L["Network.NoneSeen"]</span></div>
+                    }
+
+                    @foreach (WifiNetwork network in State.Networks)
+                    {
+                        bool selected = !_hidden && _ssid == network.Ssid;
+                        <button class="@(selected ? "row row--selected" : "row")" type="button" role="radio" @key="network.Ssid"
+                                aria-checked="@(selected ? "true" : "false")" @onclick="() => Choose(network.Ssid)">
+                            <span class="radio-mark"></span>
+                            <span class="row__main"><span class="row__title"><bdi>@network.Ssid</bdi></span></span>
+                            <span class="row__end"><SignalBars Rssi="network.Rssi" /></span>
+                        </button>
+                    }
+                }
+
+                <button class="@(_hidden ? "row row--selected" : "row")" type="button" role="radio"
+                        aria-checked="@(_hidden ? "true" : "false")" @onclick="ChooseHidden">
+                    <span class="radio-mark"></span>
+                    <span class="row__main">
+                        <span class="row__title">@L["Network.Other"]</span>
+                        <span class="row__sub">@L["Network.Other.Body"]</span>
+                    </span>
+                </button>
+            </div>
+        }
+
+        @if (_hidden || State.ScanStatus == NetworkScanStatus.Unsupported)
+        {
+            <div class="field">
+                <label for="ssid-input">@L["Network.Ssid"]</label>
+                <Input TValue="string" id="ssid-input" @bind-Value="_ssid" Size="InputSize.Large" BindOnInput="true"
+                       AutoComplete="false" Placeholder="@L["Network.Ssid.Placeholder"].Value" />
+            </div>
+        }
+
+        <div class="field">
+            <label for="password-input">@L["Network.Password"]</label>
+            <InputPassword id="password-input" @bind-Value="_password" Size="InputSize.Large" BindOnInput="true"
+                           AutoComplete="false" Placeholder="@L["Network.Password.Placeholder"].Value" OnPressEnter="SubmitAsync" />
+            @if (_problem != CredentialProblem.None)
+            {
+                <span class="field__error" role="alert">@L.Credential(_problem)</span>
+            }
+            else
+            {
+                <span class="caption">@L["Network.Password.Hint"]</span>
+            }
+        </div>
+
+        @if (DemoMode)
+        {
+            <p class="caption" style="margin:0">@L["Network.DemoHint", DemoWorld.HomeSsid, DemoWorld.HomePassword]</p>
+        }
+
+        <button class="link-button" type="button" @onclick="() => Wizard.BackToScanAsync()">@L["Network.OtherDevice"]</button>
+    </div>
+</div>
+
+<div class="wizard__footer">
+    <Button Type="ButtonType.Primary" Size="ButtonSize.Large" Block="true" Disabled="string.IsNullOrEmpty(_ssid)" OnClick="SubmitAsync">
+        @L["Network.Connect"]
+    </Button>
+</div>
+
+@code {
+    private string _ssid = string.Empty;
+    private string _password = string.Empty;
+    private bool _hidden;
+    private CredentialProblem _problem;
+    private CredentialDraft? _appliedDraft;
+
+    [Parameter, EditorRequired]
+    public WizardChoosingNetwork State { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public AddDeviceWizard Wizard { get; set; } = null!;
+
+    [Parameter]
+    public bool DemoMode { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        // Restore what was typed before a retry (once per draft).
+        if (!ReferenceEquals(_appliedDraft, State.Draft))
+        {
+            _appliedDraft = State.Draft;
+            if (State.Draft.Ssid.Length > 0)
+            {
+                _ssid = State.Draft.Ssid;
+                _password = State.Draft.Password;
+                _hidden = State.Draft.IsHidden;
+            }
+        }
+
+        // Preselect the strongest network on first scan when nothing is chosen.
+        if (_ssid.Length == 0 && !_hidden && State.Networks.Count > 0)
+        {
+            _ssid = State.Networks[0].Ssid;
+        }
+    }
+
+    private void Choose(string ssid)
+    {
+        _hidden = false;
+        _ssid = ssid;
+        _problem = CredentialProblem.None;
+    }
+
+    private void ChooseHidden()
+    {
+        if (!_hidden)
+        {
+            _hidden = true;
+            _ssid = string.Empty;
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        _problem = await Wizard.SubmitCredentialsAsync(_ssid.Trim(), _password, _hidden);
+    }
+
+    public void Dispose()
+    {
+        // Do not keep the password in this component longer than the step.
+        _password = string.Empty;
+    }
+}

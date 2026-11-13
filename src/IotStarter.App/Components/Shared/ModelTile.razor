@@ -1,0 +1,19 @@
+@using IotStarter.Shared
+
+@* Model icon tile. Unknown (or not yet identified) models get a neutral warning tile. *@
+<span class="@(Known ? "model-tile" : "model-tile model-tile--unknown")">
+    <AppIcon Name="@(Known ? IconFor(ModelId!.Value) : "unknown")" />
+</span>
+
+@code {
+    [Parameter]
+    public ushort? ModelId { get; set; }
+
+    private bool Known => ModelId is { } id && ModelCatalog.Find(id) is not null;
+
+    private static string IconFor(ushort modelId) => ModelCatalog.Find(modelId)?.IconKey switch
+    {
+        "switch4" => "switch",
+        _ => "switch"
+    };
+}
