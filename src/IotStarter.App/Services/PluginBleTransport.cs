@@ -41,10 +41,25 @@ public sealed class PluginBleTransport : IBleTransport
     public async Task ScanAsync(Guid serviceUuid, Action<BleAdvertisement> onAdvertisement, CancellationToken cancellationToken)
     {
         IAdapter adapter = _ble.Adapter;
+        var ours = new ConcurrentDictionary<string, bool>(StringComparer.Ordinal);
         void OnAdvertised(object? sender, DeviceEventArgs e)
         {
             IDevice device = e.Device;
             string id = device.Id.ToString();
+
+            // Without a system filter (Windows), keep only peripherals that advertised our service
+            // UUID, plus every later packet from them: their scan responses carry the model block
+            // but not the UUID.
+            if (!FilterInSystem && !ours.ContainsKey(id))
+            {
+                if (!AdvertisesService(device, serviceUuid))
+                {
+                    return;
+                }
+
+                ours[id] = true;
+            }
+
             _seen[id] = device;
             onAdvertisement(ToAdvertisement(id, device));
         }
@@ -57,7 +72,7 @@ public sealed class PluginBleTransport : IBleTransport
             // The plugin stops after ScanTimeout; keep scanning until the caller cancels.
             while (!cancellationToken.IsCancellationRequested)
             {
-                var filter = new ScanFilterOptions { ServiceUuids = [serviceUuid] };
+                var filter = FilterInSystem ? new ScanFilterOptions { ServiceUuids = [serviceUuid] } : new ScanFilterOptions();
                 await adapter.StartScanningForDevicesAsync(filter, deviceFilter: null, allowDuplicatesKey: true, cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -124,6 +139,45 @@ public sealed class PluginBleTransport : IBleTransport
         }
 
         return new PluginBleConnection(adapter, device, chunkSize, _logger);
+    }
+
+    /// <summary>
+    /// Whether the platform's scan filter may be used. Windows delivers the scan response as a
+    /// separate packet and applies a service-UUID filter to each packet on its own, so the scan
+    /// response (which carries the model block, not the UUID) would be dropped. Android and iOS
+    /// filter on the combined advertisement + scan response.
+    /// </summary>
+#if WINDOWS
+    private static readonly bool FilterInSystem = false;
+#else
+    private static readonly bool FilterInSystem = true;
+#endif
+
+    /// <summary>True if the advertisement lists <paramref name="serviceUuid"/> among its 128-bit service UUIDs.</summary>
+    private static bool AdvertisesService(IDevice device, Guid serviceUuid)
+    {
+        // On air, 128-bit UUIDs are little-endian: reverse to compare with the textual form.
+        string wanted = serviceUuid.ToString("N");
+        foreach (AdvertisementRecord record in device.AdvertisementRecords ?? [])
+        {
+            if (record.Type is not (AdvertisementRecordType.UuidsComplete128Bit or AdvertisementRecordType.UuidsIncomplete128Bit)
+                || record.Data is null)
+            {
+                continue;
+            }
+
+            for (int offset = 0; offset + 16 <= record.Data.Length; offset += 16)
+            {
+                byte[] uuid = record.Data[offset..(offset + 16)];
+                Array.Reverse(uuid);
+                if (string.Equals(Convert.ToHexString(uuid), wanted, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private static BleAdvertisement ToAdvertisement(string id, IDevice device)
