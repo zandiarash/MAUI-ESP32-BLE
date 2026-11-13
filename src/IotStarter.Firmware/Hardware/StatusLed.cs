@@ -23,7 +23,10 @@ namespace IotStarter.Firmware.Hardware
         Online = 4,
 
         /// <summary>Fast blink: reset button held, keep holding.</summary>
-        ResetPending = 5
+        ResetPending = 5,
+
+        /// <summary>Long on, short off: a start-up step failed (see the debug log); retrying.</summary>
+        Error = 6
     }
 
     /// <summary>
@@ -33,6 +36,7 @@ namespace IotStarter.Firmware.Hardware
     public class StatusLed
     {
         private const int IdentifyDurationMs = 3000;
+        private const int ButtonPollMs = 50;
 
         // Durations in ms, alternating on, off, on, off...
         private static readonly int[] ProvisioningSteps = new int[] { 100, 150, 100, 1150 };
@@ -41,6 +45,7 @@ namespace IotStarter.Firmware.Hardware
         private static readonly int[] OnlineSteps = new int[] { 1000 };
         private static readonly int[] OffSteps = new int[] { 0, 1000 };
         private static readonly int[] FastSteps = new int[] { 100, 100 };
+        private static readonly int[] ErrorSteps = new int[] { 1500, 250 };
 
         private readonly GpioPin _pin;
         private readonly bool _activeLow;
@@ -48,6 +53,7 @@ namespace IotStarter.Firmware.Hardware
         private readonly object _lock = new object();
         private LedPattern _pattern = LedPattern.Off;
         private long _identifyUntilMs;
+        private ResetButton _button;
 
         public StatusLed(GpioController gpio, int pinNumber, bool activeLow)
         {
@@ -80,6 +86,12 @@ namespace IotStarter.Firmware.Hardware
             }
         }
 
+        /// <summary>Lets this thread also poll the reset button (one thread instead of two).</summary>
+        public void AttachButton(ResetButton button)
+        {
+            _button = button;
+        }
+
         /// <summary>Blinks fast for 3 seconds so the user can find the device.</summary>
         public void Identify()
         {
@@ -103,9 +115,19 @@ namespace IotStarter.Firmware.Hardware
                     {
                         bool on = (i % 2) == 0;
                         SetLevel(on && steps[i] > 0);
-                        if (steps[i] > 0)
+
+                        // Wait in 50 ms slices so the same thread can poll the reset button.
+                        int remaining = steps[i];
+                        while (remaining > 0 && !interrupted)
                         {
-                            interrupted = _changed.WaitOne(steps[i], false);
+                            int slice = remaining < ButtonPollMs ? remaining : ButtonPollMs;
+                            interrupted = _changed.WaitOne(slice, false);
+                            remaining -= slice;
+                            ResetButton button = _button;
+                            if (button != null)
+                            {
+                                button.Poll();
+                            }
                         }
                     }
                 }
@@ -137,6 +159,8 @@ namespace IotStarter.Firmware.Hardware
                         return OnlineSteps;
                     case LedPattern.ResetPending:
                         return FastSteps;
+                    case LedPattern.Error:
+                        return ErrorSteps;
                     default:
                         return OffSteps;
                 }

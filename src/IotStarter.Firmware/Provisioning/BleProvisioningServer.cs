@@ -35,6 +35,7 @@ namespace IotStarter.Firmware.Provisioning
         private byte _txMessageId;
         private bool _centralConnected;
         private bool _shutDown;
+        private bool _useDefaultAdvertising;
         private Timer _readvertiseTimer;
 
         public BleProvisioningServer(string deviceName, byte[] infoValue, byte[] manufacturerPayload, byte[] initialState)
@@ -59,9 +60,14 @@ namespace IotStarter.Firmware.Provisioning
             }
         }
 
-        /// <summary>Creates the GATT service and starts advertising.</summary>
+        /// <summary>
+        /// Starts the BLE server, creates the GATT service and starts advertising. The order follows
+        /// BluetoothLESample2 (pairing configured, server started, then the service created). Each step
+        /// is logged so a failure on real hardware shows exactly where it stopped.
+        /// </summary>
         public void Start()
         {
+            Log.Info("BLE: step 1/5 configure server and pairing");
             BluetoothLEServer server = BluetoothLEServer.Instance;
             server.DeviceName = _deviceName;
 
@@ -72,6 +78,10 @@ namespace IotStarter.Firmware.Provisioning
             server.Pairing.PairingComplete += OnPairingComplete;
             server.Session.SessionStatusChanged += OnSessionStatusChanged;
 
+            Log.Info("BLE: step 2/5 start server");
+            server.Start();
+
+            Log.Info("BLE: step 3/5 create service");
             GattServiceProviderResult providerResult = GattServiceProvider.Create(new Guid(ProtocolConstants.ServiceUuid));
             if (providerResult.Error != BluetoothError.Success)
             {
@@ -80,6 +90,7 @@ namespace IotStarter.Firmware.Provisioning
 
             _provider = providerResult.ServiceProvider;
             GattLocalService service = _provider.Service;
+            Log.Info("BLE: step 4/5 create characteristics");
 
             GattLocalCharacteristic info = CreateCharacteristic(
                 service,
@@ -108,17 +119,30 @@ namespace IotStarter.Firmware.Provisioning
                 "Command");
             command.WriteRequested += OnCommandWriteRequested;
 
-            // Notify-only. The protection levels are also meant to cover the subscription (CCCD) write,
-            // which makes the phone pair when it subscribes. Results are only produced after an
-            // encrypted Command write, so they always travel on an encrypted link.
-            _resultCharacteristic = CreateCharacteristic(
+            // Notify-only. Its subscription (CCCD write) is protected so that subscribing makes the
+            // phone pair. Results carry no secrets (the passphrase only ever goes to Command, which
+            // always requires encryption) and are produced only after an encrypted Command write, so
+            // if the stack refuses a protected notify-only characteristic, a plain one is used instead.
+            _resultCharacteristic = TryCreateCharacteristic(
                 service,
                 ProtocolConstants.ResultCharacteristicUuid,
                 GattCharacteristicProperties.Notify,
-                GattProtectionLevel.EncryptionRequired,
+                GattProtectionLevel.Plain,
                 GattProtectionLevel.EncryptionRequired,
                 "Result");
+            if (_resultCharacteristic == null)
+            {
+                Log.Warn("BLE: protected Result refused; using a plain subscription (Command stays encrypted)");
+                _resultCharacteristic = CreateCharacteristic(
+                    service,
+                    ProtocolConstants.ResultCharacteristicUuid,
+                    GattCharacteristicProperties.Notify,
+                    GattProtectionLevel.Plain,
+                    GattProtectionLevel.Plain,
+                    "Result");
+            }
 
+            Log.Info("BLE: step 5/5 advertise");
             StartAdvertising();
         }
 
@@ -224,7 +248,68 @@ namespace IotStarter.Firmware.Provisioning
             }
         }
 
+        /// <summary>
+        /// Advertises with the custom layout (UUID + name + identity block). If the stack does not
+        /// start it, falls back to the library's default advertisement (service UUID; name as in the
+        /// ImprovWifi sample): the app still finds the device by UUID and name and reads the model
+        /// from the Info characteristic.
+        /// </summary>
         private void StartAdvertising()
+        {
+            if (!_useDefaultAdvertising)
+            {
+                try
+                {
+                    StartCustomAdvertising();
+                    if (IsAdvertising())
+                    {
+                        return;
+                    }
+
+                    Log.Warn("BLE: custom advertisement did not start (status "
+                        + ((int)_provider.AdvertisementStatus).ToString() + "); using the default layout");
+                }
+                catch (Exception ex)
+                {
+                    Log.Error("BLE: custom advertisement failed; using the default layout", ex);
+                }
+
+                _useDefaultAdvertising = true;
+                try
+                {
+                    _provider.StopAdvertising();
+                }
+                catch (Exception)
+                {
+                    // Nothing was advertising.
+                }
+            }
+
+            StartDefaultAdvertising();
+        }
+
+        private bool IsAdvertising()
+        {
+            GattServiceProviderAdvertisementStatus status = _provider.AdvertisementStatus;
+            return status == GattServiceProviderAdvertisementStatus.Started
+                || status == GattServiceProviderAdvertisementStatus.StartedWithoutAllAdvertisementData;
+        }
+
+        private void StartDefaultAdvertising()
+        {
+            GattServiceProviderAdvertisingParameters parameters = new GattServiceProviderAdvertisingParameters();
+            parameters.IsConnectable = true;
+            parameters.IsDiscoverable = true;
+            parameters.Advertisement.LocalName = _deviceName;
+            _provider.StartAdvertising(parameters);
+            Log.Info("BLE: advertising (default layout) as '" + _deviceName + "' (status " + ((int)_provider.AdvertisementStatus).ToString() + ")");
+            if (!IsAdvertising())
+            {
+                throw new InvalidOperationException("Advertising did not start (status " + ((int)_provider.AdvertisementStatus).ToString() + ")");
+            }
+        }
+
+        private void StartCustomAdvertising()
         {
             GattServiceProviderAdvertisingParameters parameters = new GattServiceProviderAdvertisingParameters();
             parameters.IsConnectable = true;
@@ -271,6 +356,26 @@ namespace IotStarter.Firmware.Provisioning
             }
 
             return result.Characteristic;
+        }
+
+        /// <summary>Like <see cref="CreateCharacteristic"/> but returns null instead of throwing.</summary>
+        private static GattLocalCharacteristic TryCreateCharacteristic(
+            GattLocalService service,
+            string uuid,
+            GattCharacteristicProperties properties,
+            GattProtectionLevel readProtection,
+            GattProtectionLevel writeProtection,
+            string description)
+        {
+            try
+            {
+                return CreateCharacteristic(service, uuid, properties, readProtection, writeProtection, description);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("BLE: " + description + " with protection failed", ex);
+                return null;
+            }
         }
 
         private int CurrentChunkSize()

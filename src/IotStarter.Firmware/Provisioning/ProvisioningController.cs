@@ -104,12 +104,8 @@ namespace IotStarter.Firmware.Provisioning
                 _capabilities);
             byte[] manufacturer = MessageCodec.EncodeManufacturerPayload(FirmwareConfig.ModelId, _mac);
 
-            Log.Memory("before BLE start");
-            _server = new BleProvisioningServer(name, info, manufacturer, MessageCodec.EncodeState(_state, _error, null));
-            _server.MessageReceived += OnMessageReceived;
             DeviceRuntime.SetBeforeRestart(ShutdownBle);
-            _server.Start();
-            Log.Memory("after BLE start");
+            StartBleWithRetries(name, info, manufacturer);
 
             _led.Pattern = _kind == ProvisioningKind.Recovery ? LedPattern.RecoveryWindow : LedPattern.Provisioning;
 
@@ -157,6 +153,42 @@ namespace IotStarter.Firmware.Provisioning
                     {
                         LeaveRecoveryWindow("the stored network is reachable again");
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Starts BLE. A failure shows the error LED pattern and is retried every 10 s (the stack is
+        /// disposed in between); after three failures the device restarts. This keeps the device
+        /// diagnosable (LED, debug log) instead of rebooting in a tight loop.
+        /// </summary>
+        private void StartBleWithRetries(string name, byte[] info, byte[] manufacturer)
+        {
+            const int MaxAttempts = 3;
+            for (int attempt = 1; ; attempt++)
+            {
+                Log.Memory("before BLE start");
+                try
+                {
+                    _server = new BleProvisioningServer(name, info, manufacturer, MessageCodec.EncodeState(_state, _error, null));
+                    _server.MessageReceived += OnMessageReceived;
+                    _server.Start();
+                    Log.Memory("after BLE start");
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error("BLE start failed (attempt " + attempt.ToString() + " of " + MaxAttempts.ToString() + ")", ex);
+                    _led.Pattern = LedPattern.Error;
+                    ShutdownBle();
+                    _server = null;
+                    if (attempt >= MaxAttempts)
+                    {
+                        DeviceRuntime.Restart("BLE could not start");
+                        return;
+                    }
+
+                    Thread.Sleep(10000);
                 }
             }
         }

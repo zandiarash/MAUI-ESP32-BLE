@@ -262,7 +262,7 @@ Base URL: `http://<ip>:80/api/v1`. Bodies are JSON in UTF-8.
 
 Field types: `id` is a string on `/info` (device ID) and a number on outputs. `model` is a number (for example `1`). `fw` is a string such as `"1.0.0"`. `api` is a number. `on` is a boolean.
 
-Bodies are limited to 256 bytes and must be flat JSON objects. Unknown fields are ignored. A missing required field, a wrong type, or anything that is not JSON gets 400. A wrong method on a known path gets 404 (a library limitation).
+Bodies are limited to 256 bytes and must be flat JSON objects. Unknown fields are ignored. A missing required field, a wrong type, or anything that is not JSON gets 400. A wrong method on a known path gets 405.
 
 **Example**
 

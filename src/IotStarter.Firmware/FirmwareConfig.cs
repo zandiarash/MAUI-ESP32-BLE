@@ -31,14 +31,19 @@ namespace IotStarter.Firmware
         /// <summary>Select the strategy with this one constant.</summary>
         public static readonly ProvisioningStrategy Strategy = ProvisioningStrategy.JoinWhileBleActive;
 
-        /// <summary>Answer mDNS / DNS-SD queries. Turn off if RAM is too tight; UDP discovery stays.</summary>
-        public static readonly bool EnableMdns = true;
-
         /// <summary>
-        /// Restart via a 1-second deep sleep instead of a software reboot. Keep false unless testing
-        /// shows that a software reboot leaves the radio in a bad state.
+        /// Answer mDNS / DNS-SD queries. Requires the IOTSTARTER_MDNS compilation symbol and the
+        /// MulticastDns package; off by default because it does not fit in RAM next to BLE on boards
+        /// without PSRAM. UDP discovery and the last-known address always work.
         /// </summary>
-        public static readonly bool RestartViaDeepSleep = false;
+#if IOTSTARTER_MDNS
+        public static readonly bool EnableMdns = true;
+#else
+        public static readonly bool EnableMdns = false;
+#endif
+
+        /// <summary>Print nanoFramework GC messages (heap size and free memory) to the debug output.</summary>
+        public static readonly bool LogGcMessages = true;
 
         public const int StatusLedGpio = ModelCatalog.StatusLedGpio;
         public const bool StatusLedActiveLow = false;

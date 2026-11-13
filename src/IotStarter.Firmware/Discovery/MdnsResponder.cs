@@ -1,3 +1,7 @@
+// Optional: compiled only with the IOTSTARTER_MDNS symbol and the nanoFramework.Iot.Device.MulticastDns
+// package (plus its dependencies) referenced. Off by default: on ESP32 boards without PSRAM the
+// extra assemblies did not fit next to the BLE stack (OutOfMemory at boot). See README "Discovery".
+#if IOTSTARTER_MDNS
 using System;
 using System.Net;
 using IotStarter.Firmware.Diagnostics;
@@ -151,3 +155,4 @@ namespace IotStarter.Firmware.Discovery
         }
     }
 }
+#endif

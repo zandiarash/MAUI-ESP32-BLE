@@ -1,6 +1,4 @@
-using System;
 using System.Device.Gpio;
-using System.Threading;
 using IotStarter.Firmware.Diagnostics;
 using IotStarter.Shared;
 
@@ -12,84 +10,78 @@ namespace IotStarter.Firmware.Hardware
     /// <summary>
     /// Watches the BOOT button (GPIO 0, active-low) while the firmware runs. It is never sampled
     /// at power-on: holding GPIO 0 during reset puts the ESP32 into download mode.
-    /// While held, the LED switches to a fast blink; after 5 s the factory reset is requested.
+    /// It has no thread of its own (threads cost managed heap): <see cref="StatusLed"/> calls
+    /// <see cref="Poll"/> every 50 ms. While held, the LED fast-blinks; after 5 s the factory reset runs.
     /// </summary>
     public class ResetButton
     {
-        private const int PollIntervalMs = 50;
         private const int FeedbackAfterMs = 1000;
 
         private readonly GpioPin _pin;
         private readonly StatusLed _led;
         private readonly FactoryResetRequestedHandler _onReset;
+        private bool _armed;
+        private bool _fired;
+        private long _pressedAt = -1;
+        private bool _feedbackShown;
+        private LedPattern _patternBeforePress;
 
         public ResetButton(GpioController gpio, int pinNumber, StatusLed led, FactoryResetRequestedHandler onReset)
         {
             _led = led;
             _onReset = onReset;
             _pin = gpio.OpenPin(pinNumber, PinMode.InputPullUp);
-
-            Thread thread = new Thread(Run);
-            thread.Start();
+            led.AttachButton(this);
         }
 
-        private void Run()
+        /// <summary>Samples the button once. Called from the LED thread.</summary>
+        public void Poll()
         {
-            try
+            if (_fired)
             {
-                // Ignore a button that is already held when the firmware starts (released after boot).
-                while (_pin.Read() == PinValue.Low)
+                return;
+            }
+
+            bool pressed = _pin.Read() == PinValue.Low;
+
+            // Ignore a button that is already held when the firmware starts, until it is released.
+            if (!_armed)
+            {
+                _armed = !pressed;
+                return;
+            }
+
+            long now = DeviceRuntime.NowMs;
+            if (pressed)
+            {
+                if (_pressedAt < 0)
                 {
-                    Thread.Sleep(PollIntervalMs);
+                    _pressedAt = now;
                 }
 
-                long pressedAt = -1;
-                LedPattern patternBeforePress = LedPattern.Off;
-                bool feedbackShown = false;
-
-                while (true)
+                long held = now - _pressedAt;
+                if (!_feedbackShown && held >= FeedbackAfterMs)
                 {
-                    bool pressed = _pin.Read() == PinValue.Low;
-                    long now = DeviceRuntime.NowMs;
+                    _patternBeforePress = _led.Pattern;
+                    _led.Pattern = LedPattern.ResetPending;
+                    _feedbackShown = true;
+                }
 
-                    if (pressed)
-                    {
-                        if (pressedAt < 0)
-                        {
-                            pressedAt = now;
-                        }
-
-                        long held = now - pressedAt;
-                        if (!feedbackShown && held >= FeedbackAfterMs)
-                        {
-                            patternBeforePress = _led.Pattern;
-                            _led.Pattern = LedPattern.ResetPending;
-                            feedbackShown = true;
-                        }
-
-                        if (held >= ProtocolConstants.FactoryResetHoldMs)
-                        {
-                            Log.Info("Reset button held for 5 s: factory reset");
-                            _onReset();
-                            return;
-                        }
-                    }
-                    else if (pressedAt >= 0)
-                    {
-                        pressedAt = -1;
-                        if (feedbackShown)
-                        {
-                            _led.Pattern = patternBeforePress;
-                            feedbackShown = false;
-                        }
-                    }
-
-                    Thread.Sleep(PollIntervalMs);
+                if (held >= ProtocolConstants.FactoryResetHoldMs)
+                {
+                    _fired = true;
+                    Log.Info("Reset button held for 5 s: factory reset");
+                    _onReset();
                 }
             }
-            catch (Exception ex)
+            else if (_pressedAt >= 0)
             {
-                DeviceRuntime.Fatal("ResetButton", ex);
+                _pressedAt = -1;
+                if (_feedbackShown)
+                {
+                    _led.Pattern = _patternBeforePress;
+                    _feedbackShown = false;
+                }
             }
         }
     }

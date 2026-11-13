@@ -19,6 +19,15 @@ namespace IotStarter.Firmware
     {
         public static void Main()
         {
+            // Heap numbers first, before anything else allocates. The GC messages come from
+            // nanoFramework itself and need no managed memory to print.
+            if (FirmwareConfig.LogGcMessages)
+            {
+                nanoFramework.Runtime.Native.GC.EnableGCMessages(true);
+            }
+
+            Log.Memory("start of Main");
+
             try
             {
                 Run();

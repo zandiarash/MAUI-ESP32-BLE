@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using IotStarter.Firmware.Hardware;
-using nanoFramework.Hardware.Esp32;
 using nanoFramework.Runtime.Native;
 
 namespace IotStarter.Firmware.Diagnostics
@@ -37,8 +36,7 @@ namespace IotStarter.Firmware.Diagnostics
 
         /// <summary>
         /// Restarts the device cleanly. Callers that own the BLE stack shut it down first.
-        /// Uses a software reboot; <see cref="FirmwareConfig.RestartViaDeepSleep"/> switches to a 1 s
-        /// deep-sleep timer wake-up if testing shows the reboot leaves the radio in a bad state.
+        /// Uses a software reboot (Power.RebootDevice).
         /// </summary>
         public static void Restart(string reason)
         {
@@ -80,12 +78,6 @@ namespace IotStarter.Firmware.Diagnostics
             // Let the debug output drain.
             Thread.Sleep(100);
 
-            if (FirmwareConfig.RestartViaDeepSleep)
-            {
-                Sleep.EnableWakeupByTimer(TimeSpan.FromSeconds(1));
-                Sleep.StartDeepSleep();
-            }
-
             Power.RebootDevice();
         }
 
@@ -93,6 +85,9 @@ namespace IotStarter.Firmware.Diagnostics
         public static void Fatal(string where, Exception ex)
         {
             Log.Error("Unrecoverable error in " + where, ex);
+
+            // Pause so the log can be read (or a debugger attached) instead of a tight reboot loop.
+            Thread.Sleep(5000);
             Restart("fatal error in " + where);
         }
     }

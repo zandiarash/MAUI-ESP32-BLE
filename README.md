@@ -78,16 +78,9 @@ Create a *Blank Application (.NET nanoFramework)* project, add the Shared projec
 | nanoFramework.Runtime.Events | **1.11.39** (do **not** take 2.0.1: it requires CoreLibrary 2.0 preview) |
 | nanoFramework.Runtime.Native | 1.7.11 |
 | nanoFramework.Device.Bluetooth | 1.1.125 |
-| nanoFramework.Hardware.Esp32 | 1.6.42 |
 | nanoFramework.System.Device.Wifi | 1.5.152 |
 | nanoFramework.System.Device.Gpio | 1.1.64 |
 | nanoFramework.System.Net | 1.11.64 |
-| nanoFramework.System.Net.Http.Server | 1.5.214 |
-| nanoFramework.WebServer | 1.2.162 |
-| nanoFramework.Iot.Device.MulticastDns | 1.0.337 |
-| nanoFramework.System.Net.Sockets.UdpClient | 1.1.109 |
-| nanoFramework.System.Buffers.Helpers | 1.0.334 |
-| nanoFramework.System.Buffers.Binary.BinaryPrimitives | 1.2.862 |
 | nanoFramework.System.IO.FileSystem | 1.1.96 |
 | nanoFramework.System.IO.Streams | 1.1.96 |
 | nanoFramework.System.Text | 1.3.42 |
@@ -101,8 +94,8 @@ Deployment fails when the managed packages do not match the native assemblies in
 | Setting | Default | Meaning |
 |---|---|---|
 | `Strategy` | `JoinWhileBleActive` | Default strategy: join Wi-Fi while BLE stays up. `VerifyAfterReboot` is the low-RAM fallback (section 9) |
-| `EnableMdns` | `true` | DNS-SD responder; turn off if RAM is tight (UDP discovery remains) |
-| `RestartViaDeepSleep` | `false` | Use a 1 s deep-sleep timer wake-up instead of a software reboot, only if a reboot leaves the radio in a bad state |
+| `EnableMdns` | off | DNS-SD responder. **Off by default**: with it, a WROOM-32 without PSRAM ran out of managed memory at boot. To enable it on a board with PSRAM, add the `IOTSTARTER_MDNS` compilation symbol and the packages `nanoFramework.Iot.Device.MulticastDns 1.0.337`, `System.Net.Sockets.UdpClient 1.1.109`, `System.Buffers.Helpers 1.0.334` and `System.Buffers.Binary.BinaryPrimitives 1.2.862` |
+| `LogGcMessages` | `true` | Print nanoFramework GC messages (managed heap free) to the debug output |
 | `ModelId` | `0x0001` | Model this image is built for (`ModelCatalog` in Shared) |
 
 ### LED patterns (GPIO 2)
@@ -114,6 +107,7 @@ Deployment fails when the managed packages do not match the native assemblies in
 | Slow blink | Joining Wi-Fi |
 | Solid | Online |
 | Fast blink | Identify (3 s), or reset button held (keep holding) |
+| Long on, short off | A start-up step failed (for example, Bluetooth would not start). The device logs the step and error code, retries every 10 s, and restarts after three failures |
 
 **Factory reset:** hold BOOT (GPIO 0) for **5 seconds** while the firmware is running. This erases the Wi-Fi credentials, the API token and the settings, then reboots into setup mode. Do not hold it while plugging in: that enters the ESP32 download mode.
 
@@ -236,7 +230,7 @@ To read the token for test 8, use a debug build: set a breakpoint in `DeviceMana
 - **Advertising:** the 31-byte ADV packet holds Flags, the 128-bit UUID and the name; the model block is in the scan response. A passive scanner sees only the name.
 - **Stale pairing keys:** the device does not bond, but some phones keep keys anyway. If pairing fails after a factory reset, remove `IOT-xxxx` from the phone's Bluetooth settings (the wizard says so).
 - **Low-RAM fallback** (`VerifyAfterReboot`): the device cannot scan during setup (the user types the SSID). A failed join is reported only after the device restarts into setup mode; the wizard reconnects and shows the reason.
-- **Wrong method on a known HTTP path** returns 404, not 405 (a `nanoFramework.WebServer` limitation). Request bodies are limited to 256 bytes.
+- **HTTP server:** a small built-in server (`Api/HttpServer.cs`) replaces `nanoFramework.WebServer` and `System.Net.Http`, which did not fit in the managed heap next to BLE on a board without PSRAM. It handles one connection at a time with `Connection: close`, a 1 KB request head and a 256-byte body. A wrong method on a known path returns 405.
 - **iOS** is configured but not built or tested here (it needs a Mac). Without Apple's multicast entitlement, UDP discovery is unavailable on iOS.
 - **Ant Design Blazor** runs on a vendor prerelease built for .NET 11 (see section 5).
 - **Firmware updates (OTA), cloud access, MQTT and WPA-Enterprise** are out of scope.
@@ -247,9 +241,15 @@ To read the token for test 8, use a debug build: set a breakpoint in `DeviceMana
 3. Whether advertising resumes after a phone disconnects. The firmware re-advertises after 500 ms if the status is not `Started`.
 4. Free managed and native heap with BLE, Wi-Fi, HTTP and mDNS up (the firmware logs `MEM` lines at each stage). If tight, set `EnableMdns = false` or `Strategy = VerifyAfterReboot`.
 5. Zeroconf's Bonjour path on iOS 17+.
-6. Whether a software reboot after BLE shutdown always comes up cleanly (otherwise set `RestartViaDeepSleep = true`).
+6. Whether a software reboot after BLE shutdown always comes up cleanly. If not, a 1 s deep-sleep restart (`Sleep.EnableWakeupByTimer` + `Sleep.StartDeepSleep`) needs `nanoFramework.Hardware.Esp32` back, which costs about 12 KB of deployed code.
 
 ## 10. Logs
 
 - **Firmware:** the Visual Studio Debug output, with lines like `[12s INF] Wi-Fi: joining 'Home-WiFi' (passphrase length 12)` and `[13s MEM] after BLE start: managed free=… native internal free=…`.
 - **App:** the Debug output (DEBUG builds) and `adb logcat -s DOTNET`.
+
+## 11. Discovery without mDNS (default firmware build)
+
+On an ESP32 without PSRAM, the firmware ships **without** the mDNS responder: it did not fit in managed memory next to the BLE stack. Finding a device again then works like this:
+- **Android and Windows:** last known IP, then the UDP broadcast probe. The app also tries mDNS, which simply finds nothing. An IP change is still found automatically (acceptance test 4).
+- **iOS:** last known IP only. iOS blocks the UDP broadcast without Apple's multicast entitlement, and mDNS is off. After a DHCP change, an iOS phone needs either the multicast entitlement or a firmware build with mDNS enabled (on a board with PSRAM). A DHCP reservation for the device in the router also avoids the problem.

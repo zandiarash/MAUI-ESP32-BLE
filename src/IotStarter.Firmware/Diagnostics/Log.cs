@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using nanoFramework.Hardware.Esp32;
 
 namespace IotStarter.Firmware.Diagnostics
 {
@@ -25,7 +24,7 @@ namespace IotStarter.Firmware.Diagnostics
             Write("ERR", ex == null ? message : message + ": " + ex.GetType().Name + ": " + ex.Message);
         }
 
-        /// <summary>Logs managed heap and internal native heap free bytes.</summary>
+        /// <summary>Logs the free managed heap (the scarce resource on boards without PSRAM).</summary>
         public static void Memory(string label)
         {
             try
@@ -33,15 +32,7 @@ namespace IotStarter.Firmware.Diagnostics
                 // Run(false) collects without compaction and returns the free managed heap in bytes.
                 uint managedFree = nanoFramework.Runtime.Native.GC.Run(false);
 
-                uint total;
-                uint free;
-                uint largest;
-                NativeMemory.GetMemoryInfo(NativeMemory.MemoryType.Internal, out total, out free, out largest);
-
-                Write("MEM", label + ": managed free=" + managedFree.ToString()
-                    + " native internal free=" + free.ToString()
-                    + " largest block=" + largest.ToString()
-                    + " total=" + total.ToString());
+                Write("MEM", label + ": managed free=" + managedFree.ToString());
             }
             catch (Exception ex)
             {

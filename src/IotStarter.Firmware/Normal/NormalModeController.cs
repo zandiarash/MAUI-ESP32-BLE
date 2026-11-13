@@ -8,7 +8,6 @@ using IotStarter.Firmware.Hardware;
 using IotStarter.Firmware.Network;
 using IotStarter.Firmware.Storage;
 using IotStarter.Shared;
-using nanoFramework.WebServer;
 
 namespace IotStarter.Firmware.Normal
 {
@@ -32,9 +31,11 @@ namespace IotStarter.Firmware.Normal
         private readonly WifiService _wifi;
         private readonly StatusLed _led;
 
-        private WebServer _webServer;
+        private HttpServer _httpServer;
         private UdpDiscoveryResponder _udp;
+#if IOTSTARTER_MDNS
         private MdnsResponder _mdns;
+#endif
 
         public NormalModeController(SettingsStore settings, WifiCredentialStore credentials, WifiService wifi, StatusLed led)
         {
@@ -140,21 +141,14 @@ namespace IotStarter.Firmware.Normal
 
         private void StartServicesOnce()
         {
-            if (_webServer != null)
+            if (_httpServer != null)
             {
                 return;
             }
 
             Log.Memory("before HTTP API start");
-            _webServer = new WebServer(
-                ProtocolConstants.HttpPort,
-                HttpProtocol.Http,
-                new Type[] { typeof(InfoController), typeof(DeviceApiController) });
-
-            // Default key for routes marked [Authentication("ApiKey")].
-            _webServer.ApiKey = _settings.TokenHex;
-            _webServer.Start();
-            Log.Info("HTTP API listening on port " + ProtocolConstants.HttpPort.ToString());
+            _httpServer = new HttpServer(DeviceApi.Handle);
+            _httpServer.Start(ProtocolConstants.HttpPort);
             Log.Memory("after HTTP API start");
 
             try
@@ -167,6 +161,7 @@ namespace IotStarter.Firmware.Normal
                 Log.Error("UDP discovery could not start", ex);
             }
 
+#if IOTSTARTER_MDNS
             if (FirmwareConfig.EnableMdns)
             {
                 try
@@ -181,6 +176,7 @@ namespace IotStarter.Firmware.Normal
                     _mdns = null;
                 }
             }
+#endif
         }
     }
 }
